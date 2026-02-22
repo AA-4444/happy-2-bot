@@ -4,7 +4,8 @@ import time
 import calendar
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Optional, Tuple
-
+from zoneinfo import ZoneInfo
+LOCAL_TZ = ZoneInfo("Europe/Warsaw")
 import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
@@ -386,7 +387,7 @@ def _compute_next_monthly(days_csv: str, at_hour: int, at_minute: int, from_ts: 
 	Следующее срабатывание по дням месяца (например '1' или '1,15') в UTC.
 	"""
 	from_ts = int(from_ts or _now_ts())
-	dt = datetime.fromtimestamp(from_ts, tz=timezone.utc)
+	dt = datetime.fromtimestamp(from_ts, tz=LOCAL_TZ)
 
 	days = _parse_days_csv(days_csv)
 	at_hour = max(0, min(23, int(at_hour or 0)))
@@ -403,7 +404,7 @@ def _compute_next_monthly(days_csv: str, at_hour: int, at_minute: int, from_ts: 
 		last_day = calendar.monthrange(y, m)[1]
 		for d in days:
 			dd = min(d, last_day)
-			candidate = datetime(y, m, dd, at_hour, at_minute, 0, tzinfo=timezone.utc)
+			candidate = datetime(y, m, dd, at_hour, at_minute, 0, tzinfo=LOCAL_TZ)
 			if int(candidate.timestamp()) > from_ts:
 				return int(candidate.timestamp())
 
@@ -417,13 +418,13 @@ def _compute_next_interval_days(interval_days: int, at_hour: int, at_minute: int
 	at_hour = max(0, min(23, int(at_hour or 0)))
 	at_minute = max(0, min(59, int(at_minute or 0)))
 
-	next_dt = datetime.fromtimestamp(from_ts, tz=timezone.utc) + timedelta(days=interval_days)
-	next_run = datetime(next_dt.year, next_dt.month, next_dt.day, at_hour, at_minute, 0, tzinfo=timezone.utc)
+	next_dt = datetime.fromtimestamp(from_ts, tzinfo=LOCAL_TZ) + timedelta(days=interval_days)
+	next_run = datetime(next_dt.year, next_dt.month, next_dt.day, at_hour, at_minute, 0, tzinfo=LOCAL_TZ)
 	return int(next_run.timestamp())
 
 def _compute_next_weekly(days_csv: str, at_hour: int, at_minute: int, from_ts: Optional[int] = None) -> int:
 	from_ts = int(from_ts or _now_ts())
-	dt = datetime.fromtimestamp(from_ts, tz=timezone.utc)
+	dt = datetime.fromtimestamp(from_ts, tzinfo=LOCAL_TZ)
 	
 	days: List[int] = []
 	for part in (days_csv or "").split(","):
@@ -451,7 +452,7 @@ def _compute_next_weekly(days_csv: str, at_hour: int, at_minute: int, from_ts: O
 				at_hour,
 				at_minute,
 				0,
-				tzinfo=timezone.utc
+				tzinfo=LOCAL_TZ
 			)
 			if int(run.timestamp()) > from_ts:
 				return int(run.timestamp())
