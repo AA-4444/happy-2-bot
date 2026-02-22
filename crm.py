@@ -110,7 +110,7 @@ def _norm_mode(mode: str) -> str:
 # broadcasts helpers
 def _norm_schedule_type(t: str) -> str:
 	tt = (t or "").strip().lower()
-	return tt if tt in ("monthly", "interval_days") else "monthly"
+	return tt if tt in ("monthly", "weekly", "interval_days") else "monthly"
 
 
 def _norm_days_of_month(s: str) -> str:
@@ -343,7 +343,8 @@ async def broadcast_new(
 	# schedule
 	schedule_type: str = Form("monthly"),   # monthly | interval_days
 	days_of_month: str = Form("1"),         # "1" or "1,15"
-	interval_days: int = Form(30),          # for interval_days
+	interval_days: int = Form(30),   
+	days_of_week: str = Form(""),       # for interval_days
 	at_hour: int = Form(12),
 	at_minute: int = Form(0),
 
@@ -385,6 +386,7 @@ async def broadcast_new(
 		schedule_type=schedule_type,
 		interval_days=interval_days,
 		days_of_month=days_of_month,
+		days_of_week=days_of_week,
 		at_hour=at_hour,
 		at_minute=at_minute,
 		is_active=1 if int(is_active) else 0,
