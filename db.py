@@ -433,13 +433,13 @@ def _compute_next_interval_days(interval_days: int, at_hour: int, at_minute: int
 	at_hour = max(0, min(23, int(at_hour or 0)))
 	at_minute = max(0, min(59, int(at_minute or 0)))
 
-	next_dt = datetime.fromtimestamp(from_ts, tzinfo=LOCAL_TZ) + timedelta(days=interval_days)
+	next_dt = datetime.fromtimestamp(from_ts, tz=LOCAL_TZ) + timedelta(days=interval_days)
 	next_run = datetime(next_dt.year, next_dt.month, next_dt.day, at_hour, at_minute, 0, tzinfo=LOCAL_TZ)
 	return int(next_run.timestamp())
 
 def _compute_next_weekly(days_csv: str, at_hour: int, at_minute: int, from_ts: Optional[int] = None) -> int:
 	from_ts = int(from_ts or _now_ts())
-	dt = datetime.fromtimestamp(from_ts, tzinfo=LOCAL_TZ)
+	dt = datetime.fromtimestamp(from_ts, tz=LOCAL_TZ)
 	
 	days: List[int] = []
 	for part in (days_csv or "").split(","):
