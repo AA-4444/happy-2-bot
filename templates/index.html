@@ -1,599 +1,630 @@
-{# templattes/index.html #}
+{# templates/index.html #}
 {% extends "base.html" %}
 {% block content %}
-
-  <!-- STATS -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-	<div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-	  <div class="text-xs text-white/40">Users</div>
-	  <div class="text-xl font-semibold">{{ stats.total_users if stats is defined else "-" }}</div>
-	</div>
-
-	<div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-	  <div class="text-xs text-white/40">Active (1h)</div>
-	  <div class="text-xl font-semibold">{{ stats.active_last_hour if stats is defined else "-" }}</div>
-	</div>
-
-	<div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-	  <div class="text-xs text-white/40">/start</div>
-	  <div class="text-xl font-semibold">{{ stats.total_starts if stats is defined else "-" }}</div>
-	</div>
-
-	<div class="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-	  <div class="text-xs text-white/40">Messages</div>
-	  <div class="text-xl font-semibold">{{ stats.total_messages if stats is defined else "-" }}</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+	--bg: #0f1318;
+	--bg-card: #151a21;
+	--bg-muted: #1a2029;
+	--bg-hover: #1e252e;
+	--border: #232b36;
+	--text: #e2e8f0;
+	--text-muted: #6b7a8d;
+	--primary: #2dd4a8;
+	--primary-dim: rgba(45,212,168,0.12);
+	--success: #34d399;
+	--success-dim: rgba(52,211,153,0.15);
+	--warning: #f59e0b;
+	--warning-dim: rgba(245,158,11,0.15);
+	--info: #3b82f6;
+	--info-dim: rgba(59,130,246,0.15);
+	--danger: #ef4444;
+	--danger-dim: rgba(239,68,68,0.12);
+	--radius: 8px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+	font-family: 'Inter', system-ui, sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
+	line-height: 1.5;
+  }
+  code, .mono { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius:3px; }
+  .crm-wrap { max-width:1200px; margin:0 auto; padding:24px 16px; }
+  /* Header */
+  .crm-header {
+	display:flex; align-items:center; gap:12px;
+	padding:16px 20px; background:var(--bg-card);
+	border:1px solid var(--border); border-radius:var(--radius);
+	margin-bottom:24px;
+  }
+  .crm-header-icon {
+	width:40px; height:40px; border-radius:var(--radius);
+	background:var(--primary-dim); display:flex; align-items:center; justify-content:center;
+	color:var(--primary); font-size:20px;
+  }
+  .crm-header h1 { font-size:18px; font-weight:600; }
+  .crm-header p { font-size:12px; color:var(--text-muted); }
+  /* Stats */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  @media(max-width:768px){ .stats-grid { grid-template-columns:repeat(2,1fr); } }
+  .stat-card {
+	background:var(--bg-card); border:1px solid var(--border);
+	border-radius:var(--radius); padding:20px; display:flex; align-items:center; gap:14px;
+	transition:border-color .2s;
+  }
+  .stat-card:hover { border-color:rgba(45,212,168,0.3); }
+  .stat-icon {
+	width:40px; height:40px; border-radius:var(--radius);
+	display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .stat-icon.users { background:var(--primary-dim); color:var(--primary); }
+  .stat-icon.active { background:var(--success-dim); color:var(--success); }
+  .stat-icon.starts { background:var(--info-dim); color:var(--info); }
+  .stat-icon.msgs { background:var(--warning-dim); color:var(--warning); }
+  .stat-label { font-size:13px; color:var(--text-muted); }
+  .stat-value { font-size:24px; font-weight:600; }
+  /* Card */
+  .card {
+	background:var(--bg-card); border:1px solid var(--border);
+	border-radius:var(--radius); overflow:hidden; margin-bottom:24px;
+  }
+  .card-head {
+	padding:20px; border-bottom:1px solid var(--border);
+	display:flex; align-items:flex-start; gap:10px;
+  }
+  .card-head-icon { font-size:18px; margin-top:2px; }
+  .card-head h2 { font-size:16px; font-weight:600; }
+  .card-head p, .card-hint { font-size:13px; color:var(--text-muted); }
+  .card-hint { padding:12px 20px; background:var(--bg-muted); border-bottom:1px solid var(--border); font-size:12px; }
+  /* Table */
+  .tbl { width:100%; border-collapse:collapse; font-size:13px; }
+  .tbl th {
+	text-align:left; padding:10px 20px; font-weight:500;
+	color:var(--text-muted); background:rgba(26,32,41,0.5);
+	border-bottom:1px solid var(--border); font-size:12px;
+  }
+  .tbl th.r { text-align:right; }
+  .tbl td { padding:10px 20px; border-bottom:1px solid rgba(35,43,54,0.5); }
+  .tbl tr:hover td { background:var(--bg-hover); }
+  .tbl td.r { text-align:right; }
+  .tbl .mono { font-size:12px; }
+  .tbl .link { color:var(--primary); text-decoration:none; }
+  .tbl .dim { color:var(--text-muted); }
+  /* Toolbar row above table */
+  .toolbar {
+	display:flex; align-items:center; justify-content:space-between;
+	padding:16px 20px; border-bottom:1px solid var(--border);
+  }
+  .toolbar-left { display:flex; align-items:center; gap:10px; }
+  .badge {
+	font-size:11px; font-family:'JetBrains Mono',monospace;
+	background:var(--bg-muted); color:var(--text-muted);
+	padding:2px 8px; border-radius:4px;
+  }
+  .btn-link {
+	display:inline-flex; align-items:center; gap:6px;
+	font-size:13px; color:var(--primary); background:none; border:none;
+	cursor:pointer; text-decoration:none; transition:opacity .2s;
+  }
+  .btn-link:hover { opacity:0.8; }
+  /* Form elements */
+  .form-row {
+	display:flex; flex-wrap:wrap; gap:12px; padding:20px;
+	background:rgba(26,32,41,0.3); border-bottom:1px solid var(--border);
+  }
+  .form-group { display:flex; flex-direction:column; gap:4px; }
+  .form-group.grow { flex:1; min-width:160px; }
+  .form-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+  input[type="text"], input[type="number"], select, textarea {
+	background:var(--bg); border:1px solid var(--border); border-radius:6px;
+	padding:8px 12px; font-size:13px; color:var(--text);
+	font-family:'Inter',sans-serif; outline:none; transition:border-color .2s;
+  }
+  input:focus, select:focus { border-color:var(--primary); }
+  input::placeholder { color:var(--text-muted); }
+  select { cursor:pointer; appearance:auto; }
+  /* Buttons */
+  .btn {
+	display:inline-flex; align-items:center; gap:6px;
+	padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500;
+	border:none; cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif;
+  }
+  .btn-primary { background:var(--primary); color:#0f1318; }
+  .btn-primary:hover { opacity:0.9; }
+  .btn-secondary { background:var(--bg-muted); color:var(--text-muted); border:1px solid var(--border); }
+  .btn-secondary:hover { background:var(--bg-hover); color:var(--text); }
+  .btn-sm { padding:5px 12px; font-size:12px; }
+  .btn-danger { background:var(--danger-dim); color:var(--danger); }
+  .btn-danger:hover { background:rgba(239,68,68,0.2); }
+  /* Pill badges */
+  .pill {
+	display:inline-block; font-size:11px; font-weight:600;
+	padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.3px;
+  }
+  .pill-on { background:var(--success-dim); color:var(--success); }
+  .pill-off { background:var(--bg-muted); color:var(--text-muted); }
+  .pill-auto { background:var(--success-dim); color:var(--success); }
+  .pill-manual { background:var(--warning-dim); color:var(--warning); }
+  /* Item rows */
+  .item-row {
+	display:flex; align-items:center; justify-content:space-between;
+	padding:14px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
+	transition:background .15s;
+  }
+  .item-row:hover { background:var(--bg-hover); }
+  .item-row:last-child { border-bottom:none; }
+  .item-left { flex:1; min-width:0; }
+  .item-title { font-size:14px; font-weight:500; }
+  .item-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .item-meta .mono { color:rgba(45,212,168,0.8); }
+  .item-actions { display:flex; align-items:center; gap:8px; margin-left:12px; }
+  /* Flow card */
+  .flow-header {
+	display:flex; align-items:center; justify-content:space-between;
+	padding:12px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
+	transition:background .15s; cursor:pointer;
+  }
+  .flow-header:hover { background:var(--bg-hover); }
+  .flow-name { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; }
+  .flow-controls { display:flex; align-items:center; gap:4px; }
+  .flow-btn {
+	width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+	border:none; background:none; color:var(--text-muted); cursor:pointer;
+	border-radius:4px; transition:all .15s; font-size:14px;
+  }
+  .flow-btn:hover { background:var(--bg-muted); color:var(--text); }
+  .flow-btn:disabled { opacity:0.3; cursor:default; }
+  .flow-btn.del:hover { background:var(--danger-dim); color:var(--danger); }
+  .flow-detail {
+	padding:16px 20px; background:rgba(26,32,41,0.3);
+	border-bottom:1px solid var(--border);
+  }
+  .flow-detail-inner {
+	background:var(--bg-muted); border:1px solid var(--border);
+	border-radius:var(--radius); padding:16px;
+  }
+  .flow-detail h4 { font-size:13px; font-weight:600; margin-bottom:10px; }
+  .flow-detail .row { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  /* Weekday buttons */
+  .weekday-btn {
+	padding:4px 10px; font-size:11px; border-radius:4px;
+	border:1px solid var(--border); background:var(--bg);
+	color:var(--text-muted); cursor:pointer; transition:all .15s;
+  }
+  .weekday-btn.active, .weekday-btn:checked {
+	background:var(--primary); color:#0f1318; border-color:var(--primary);
+  }
+  /* Checkbox style */
+  input[type="checkbox"] {
+	accent-color: var(--primary); width:16px; height:16px; cursor:pointer;
+  }
+  .check-label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); cursor:pointer; }
+  /* Sequence row */
+  .seq-row {
+	display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+	padding:14px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
+	transition:background .15s;
+  }
+  .seq-row:hover { background:var(--bg-hover); }
+  .seq-left { display:flex; align-items:center; gap:10px; }
+  .seq-right { display:flex; align-items:center; gap:8px; }
+  /* Chain arrow */
+  .chain-arrow { color:var(--text-muted); font-size:16px; margin:0 4px; }
+  /* Empty state */
+  .empty { padding:20px; font-size:13px; color:var(--text-muted); }
+  /* Time inputs */
+  .time-group { display:flex; align-items:center; gap:4px; }
+  .time-input { width:56px; text-align:center; }
+  .time-sep { font-weight:700; color:var(--text-muted); font-size:16px; }
+  /* Inline flex row */
+  .inline { display:flex; align-items:center; gap:8px; }
+  .gap-sm { gap:6px; }
+  .ml-auto { margin-left:auto; }
+  .mt-sm { margin-top:8px; }
+  .mb-sm { margin-bottom:8px; }
+</style>
+<div class="crm-wrap">
+  <!-- Header -->
+  <div class="crm-header">
+	<div class="crm-header-icon">🤖</div>
+	<div>
+	  <h1>Bot CRM</h1>
+	  <p>Dashboard & Flow Manager</p>
 	</div>
   </div>
-
-  <!-- USERS TABLE -->
-  <div class="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mb-8">
-	<div class="flex items-center justify-between mb-3">
-	  <div class="text-sm font-medium">Latest users</div>
-
-	  <div class="flex items-center gap-3">
-		<div class="text-xs text-white/40">
-		  {{ stats.total_users if stats is defined else "" }}
-		</div>
-
-		<a
-		  href="/export/users.xlsx"
-		  class="px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-sm hover:bg-white/15"
-		>
-		  ⬇️ Export Excel
-		</a>
+  <!-- Stats -->
+  <div class="stats-grid">
+	<div class="stat-card">
+	  <div class="stat-icon users">👥</div>
+	  <div>
+		<div class="stat-label">Users</div>
+		<div class="stat-value">{{ stats.total_users if stats is defined else "—" }}</div>
 	  </div>
 	</div>
-
-	<div class="overflow-x-auto">
-	  <table class="w-full text-sm">
-		<thead class="text-white/50">
-		  <tr class="border-b border-white/10">
-			<th class="text-left py-2 pr-4 font-medium">user_id</th>
-			<th class="text-left py-2 pr-4 font-medium">username</th>
-			<th class="text-left py-2 pr-4 font-medium">first_seen</th>
-			<th class="text-left py-2 pr-4 font-medium">last_seen</th>
-			<th class="text-left py-2 pr-4 font-medium">starts</th>
-			<th class="text-left py-2 pr-2 font-medium">msgs</th>
+	<div class="stat-card">
+	  <div class="stat-icon active">⚡</div>
+	  <div>
+		<div class="stat-label">Active (1h)</div>
+		<div class="stat-value">{{ stats.active_last_hour if stats is defined else "—" }}</div>
+	  </div>
+	</div>
+	<div class="stat-card">
+	  <div class="stat-icon starts">▶</div>
+	  <div>
+		<div class="stat-label">/start</div>
+		<div class="stat-value">{{ stats.total_starts if stats is defined else "—" }}</div>
+	  </div>
+	</div>
+	<div class="stat-card">
+	  <div class="stat-icon msgs">💬</div>
+	  <div>
+		<div class="stat-label">Messages</div>
+		<div class="stat-value">{{ stats.total_messages if stats is defined else "—" }}</div>
+	  </div>
+	</div>
+  </div>
+  <!-- Users Table -->
+  <div class="card">
+	<div class="toolbar">
+	  <div class="toolbar-left">
+		<h2 style="font-size:16px;font-weight:600;">Latest users</h2>
+		<span class="badge">{{ stats.total_users if stats is defined else "" }}</span>
+	  </div>
+	  <a href="/export_users" class="btn-link">⬇️ Export Excel</a>
+	</div>
+	<div style="overflow-x:auto;">
+	  <table class="tbl">
+		<thead>
+		  <tr>
+			<th>user_id</th>
+			<th>username</th>
+			<th>first_seen</th>
+			<th>last_seen</th>
+			<th class="r">starts</th>
+			<th class="r">msgs</th>
 		  </tr>
 		</thead>
-
-		<tbody class="text-white/80">
+		<tbody>
 		  {% if users is defined and users|length > 0 %}
 			{% for u in users %}
-			  <tr class="border-b border-white/5 hover:bg-white/[0.03]">
-				<td class="py-2 pr-4">{{ u.user_id }}</td>
-				<td class="py-2 pr-4">
+			  <tr>
+				<td class="mono">{{ u.user_id }}</td>
+				<td>
 				  {% if u.username %}
-					@{{ u.username }}
+					<span class="link">@{{ u.username }}</span>
 				  {% else %}
-					<span class="text-white/35">—</span>
+					<span class="dim">—</span>
 				  {% endif %}
 				</td>
-				<td class="py-2 pr-4 text-white/60">{{ u.first_seen }}</td>
-				<td class="py-2 pr-4 text-white/60">{{ u.last_seen }}</td>
-				<td class="py-2 pr-4">{{ u.starts_count }}</td>
-				<td class="py-2 pr-2">{{ u.messages_count }}</td>
+				<td class="mono dim" style="font-size:12px;">{{ u.first_seen }}</td>
+				<td class="mono dim" style="font-size:12px;">{{ u.last_seen }}</td>
+				<td class="r">{{ u.starts_count }}</td>
+				<td class="r">{{ u.messages_count }}</td>
 			  </tr>
 			{% endfor %}
 		  {% else %}
-			<tr>
-			  <td colspan="6" class="py-3 text-white/50">
-				Нет данных по пользователям. Проверь что bot пишет в таблицу bot_users.
-			  </td>
-			</tr>
+			<tr><td colspan="6" class="dim">Нет данных по пользователям. Проверь что bot пишет в таблицу bot_users.</td></tr>
 		  {% endif %}
 		</tbody>
 	  </table>
 	</div>
   </div>
-
-  <!-- ✅ BROADCASTS (Recurring) -->
-  <div class="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mb-8">
-	<div class="mb-3">
-	  <div class="text-sm font-medium">Broadcasts (recurring)</div>
-	  <div class="text-xs text-white/40 mt-1">
-		Авто-рассылки: запуск flow по расписанию для <span class="text-white/60">всех</span> или <span class="text-white/60">конкретного user_id</span>.
+  <!-- Broadcasts -->
+  <div class="card">
+	<div class="card-head">
+	  <span class="card-head-icon">📡</span>
+	  <div>
+		<h2>Broadcasts (recurring)</h2>
+		<p>Авто-рассылки: запуск flow по расписанию для всех или конкретного user_id.</p>
 	  </div>
 	</div>
-
-	<!-- CREATE -->
-	<form method="post" action="/broadcast/new" class="rounded-xl border border-white/10 bg-black/20 p-3">
-	  <div class="flex flex-wrap items-center gap-3">
-		<div class="text-xs text-white/60">Title</div>
-		<input type="text" name="title" placeholder="например: re-engage monthly"
-			   class="w-64 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-
-		<div class="text-xs text-white/60">Flow</div>
-		<select name="flow" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-		  {% for f in flows %}
-			<option value="{{ f }}">{{ f }}</option>
-		  {% endfor %}
-		</select>
-
-		<div class="text-xs text-white/60">Target</div>
-		<select name="target_mode" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" data-bc-target>
-		  <option value="all" selected>all users</option>
-		  <option value="user">single user_id</option>
-		</select>
-
-		<input type="number" name="target_user_id" min="1" step="1"
-			   placeholder="user_id"
-			   class="w-36 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm"
-			   data-bc-userid style="display:none" />
-
-		<div class="text-xs text-white/60">Schedule</div>
-	<select name="schedule_type"
-			class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm"
-			data-bc-schedule>
-	  <option value="monthly" selected>monthly</option>
-	  <option value="weekly">weekly</option>
-	  <option value="interval_days">every N days</option>
-	</select>
-
-		<!-- monthly config -->
-		<input type="text" name="days_of_month" value="1"
-			   class="w-40 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm"
-			   data-bc-dom
-			   title="Дни месяца: 1..31, можно через запятую (например: 1,15)"
-			   placeholder="days: 1 or 1,15" />
-			   <!-- weekly config -->
-			   <div class="flex items-center gap-2 text-xs text-white/70"
-					data-bc-dow style="display:none">
-				 <label><input type="checkbox" value="0" class="dow-cb">Mon</label>
-				 <label><input type="checkbox" value="1" class="dow-cb">Tue</label>
-				 <label><input type="checkbox" value="2" class="dow-cb">Wed</label>
-				 <label><input type="checkbox" value="3" class="dow-cb">Thu</label>
-				 <label><input type="checkbox" value="4" class="dow-cb">Fri</label>
-				 <label><input type="checkbox" value="5" class="dow-cb">Sat</label>
-				 <label><input type="checkbox" value="6" class="dow-cb">Sun</label>
-			   
-				 <input type="hidden" name="days_of_week"
-						value="0"
-						data-bc-dow-hidden>
-			   </div>
-
-		<!-- interval config -->
-		<input type="number" name="interval_days" min="1" step="1" value="30"
-			   class="w-32 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm"
-			   data-bc-interval style="display:none" />
-
-		<div class="text-xs text-white/60">At</div>
-		<input type="number" name="at_hour" min="0" max="23" step="1" value="12"
-			   class="w-20 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-		<span class="text-white/40">:</span>
-		<input type="number" name="at_minute" min="0" max="59" step="1" value="0"
-			   class="w-20 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-
-		<label class="flex items-center gap-2 text-xs text-white/80 ml-auto select-none">
-		  <input type="checkbox" name="is_active" value="1" checked
-				 class="w-5 h-5 rounded border border-white/30 bg-black/40 accent-emerald-400" />
-		  enabled
-		</label>
-
-		<button type="submit"
-				class="px-4 py-2 rounded-xl bg-white text-black text-sm font-medium hover:opacity-90">
-		  + Add broadcast
-		</button>
+	<form method="POST" action="/add_broadcast">
+	  <div class="form-row" style="flex-wrap:wrap; gap:12px;">
+		<div class="form-group grow">
+		  <span class="form-label">Title</span>
+		  <input type="text" name="title" placeholder="Broadcast title">
+		</div>
+		<div class="form-group">
+		  <span class="form-label">Flow</span>
+		  <select name="flow">
+			{% for f in flows %}
+			  <option value="{{ f }}">{{ f }}</option>
+			{% endfor %}
+		  </select>
+		</div>
+		<div class="form-group">
+		  <span class="form-label">Target</span>
+		  <select name="target_type" id="bc_target_type" onchange="document.getElementById('bc_uid').style.display=this.value==='single'?'block':'none'">
+			<option value="all">all users</option>
+			<option value="single">single user_id</option>
+		  </select>
+		</div>
+		<div class="form-group" id="bc_uid" style="display:none">
+		  <span class="form-label">User ID</span>
+		  <input type="number" name="target_user_id" placeholder="user_id">
+		</div>
+		<div class="form-group">
+		  <span class="form-label">Schedule</span>
+		  <select name="schedule_type" id="bc_sched" onchange="
+			document.getElementById('bc_monthly').style.display=this.value==='monthly'?'flex':'none';
+			document.getElementById('bc_weekly').style.display=this.value==='weekly'?'flex':'none';
+			document.getElementById('bc_every').style.display=this.value==='every_n_days'?'flex':'none';
+		  ">
+			<option value="monthly">monthly</option>
+			<option value="weekly">weekly</option>
+			<option value="every_n_days">every N days</option>
+		  </select>
+		</div>
+		<div class="form-group" id="bc_monthly">
+		  <span class="form-label">Days of month</span>
+		  <input type="text" name="days_of_month" placeholder="1,15" value="1,15">
+		</div>
+		<div class="form-group" id="bc_weekly" style="display:none">
+		  <span class="form-label">Days of week</span>
+		  <div class="inline gap-sm" style="flex-wrap:wrap;">
+			{% for d in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+			  <label class="weekday-btn"><input type="checkbox" name="days_of_week" value="{{ d }}" style="display:none" onchange="this.parentElement.classList.toggle('active')"> {{ d }}</label>
+			{% endfor %}
+		  </div>
+		</div>
+		<div class="form-group" id="bc_every" style="display:none">
+		  <span class="form-label">Every N days</span>
+		  <input type="number" name="interval_days" value="3" style="width:80px">
+		</div>
+		<div class="form-group">
+		  <span class="form-label">At</span>
+		  <div class="time-group">
+			<input type="number" name="at_hour" value="10" min="0" max="23" class="time-input">
+			<span class="time-sep">:</span>
+			<input type="number" name="at_minute" value="00" min="0" max="59" class="time-input">
+		  </div>
+		</div>
+		<div class="form-group" style="justify-content:flex-end;">
+		  <label class="check-label">
+			<input type="checkbox" name="is_active" value="1" checked>
+			enabled
+		  </label>
+		</div>
 	  </div>
-
-	  <div class="text-[11px] text-white/35 mt-2">
-		monthly: days <span class="text-white/60">1,15</span> = 1 и 15 числа. every N days: запустит для всех пользователей каждые N дней.
+	  <div style="padding:12px 20px; border-bottom:1px solid var(--border); background:rgba(26,32,41,0.3);">
+		<button type="submit" class="btn btn-primary">+ Add broadcast</button>
+		<p class="card-hint" style="padding:8px 0 0; border:none; background:none;">monthly: days 1,15 = 1 и 15 числа. every N days: запустит для всех пользователей каждые N дней.</p>
 	  </div>
 	</form>
-
-	<!-- LIST -->
-	<div class="mt-3 space-y-2">
+	<div>
 	  {% if broadcasts is defined and broadcasts|length > 0 %}
 		{% for b in broadcasts %}
 		  {% set b_active = (b.is_active if b.is_active is defined else 0) %}
 		  {% set target = ("ALL" if b.target_user_id is not defined or b.target_user_id is none else ("user_id=" ~ b.target_user_id)) %}
 		  {% set st = (b.schedule_type if b.schedule_type is defined else "monthly") %}
-
-		  <div class="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
-			<div class="min-w-0">
-			  <div class="text-sm font-medium truncate max-w-[320px]">
-				{{ b.title if b.title is defined and b.title else ("Broadcast: " ~ b.flow) }}
-			  </div>
-			  <div class="text-[11px] text-white/45 mt-1">
-				flow: <span class="text-white/70">{{ b.flow }}</span>
-				• target: <span class="text-white/70">{{ target }}</span>
-				• time: <span class="text-white/70">{{ "%02d"|format(b.at_hour|int) }}:{{ "%02d"|format(b.at_minute|int) }}</span>
+		  <div class="item-row">
+			<div class="item-left">
+			  <div class="item-title">{{ b.title if b.title is defined and b.title else ("Broadcast: " ~ b.flow) }}</div>
+			  <div class="item-meta">
+				flow: <span class="mono">{{ b.flow }}</span>
+				• target: {{ target }}
+				• time: {{ "%02d"|format(b.at_hour|int) }}:{{ "%02d"|format(b.at_minute|int) }}
 				{% if st == "monthly" %}
-				  • monthly days: <span class="text-white/70">{{ b.days_of_month }}</span>
+				  • monthly days: {{ b.days_of_month }}
 				{% elif st == "weekly" %}
-				  • weekly days: <span class="text-white/70">{{ b.days_of_week }}</span>
+				  • weekly days: {{ b.days_of_week }}
 				{% else %}
-				  • every: <span class="text-white/70">{{ b.interval_days }}</span> days
+				  • every: {{ b.interval_days }} days
 				{% endif %}
 			  </div>
 			</div>
-
-			<div class="flex items-center gap-2 ml-auto">
-			  <form method="post" action="/broadcast/{{ b.id }}/toggle">
-				<input type="hidden" name="is_active" value="{% if b_active|int == 1 %}0{% else %}1{% endif %}">
-				<button type="submit"
-						class="px-3 py-2 rounded-xl border text-sm
-						{% if b_active|int == 1 %}
-						  bg-emerald-500/10 border-emerald-500/20 text-emerald-200 hover:bg-emerald-500/15
-						{% else %}
-						  bg-red-500/10 border-red-500/20 text-red-200 hover:bg-red-500/15
-						{% endif %}">
+			<div class="item-actions">
+			  <form method="POST" action="/toggle_broadcast/{{ b.id }}" style="display:inline">
+				<button type="submit" class="pill {% if b_active|int == 1 %}pill-on{% else %}pill-off{% endif %}" style="border:none;cursor:pointer;">
 				  {% if b_active|int == 1 %}ENABLED{% else %}DISABLED{% endif %}
 				</button>
 			  </form>
-
-			  <form method="post" action="/broadcast/{{ b.id }}/delete" onsubmit="return confirm('Удалить broadcast?')">
-				<button type="submit"
-						class="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm hover:bg-red-500/20 text-red-200">
-				  Delete
-				</button>
+			  <form method="POST" action="/delete_broadcast/{{ b.id }}" style="display:inline" onsubmit="return confirm('Delete this broadcast?')">
+				<button type="submit" class="btn btn-sm btn-danger">Delete</button>
 			  </form>
 			</div>
 		  </div>
 		{% endfor %}
 	  {% else %}
-		<div class="text-sm text-white/45">Пока нет рассылок. Добавь monthly broadcast.</div>
+		<div class="empty">Пока нет рассылок. Добавь monthly broadcast.</div>
 	  {% endif %}
 	</div>
-
-	<script>
-	(function(){
-	
-	  const targetSel  = document.querySelector('[data-bc-target]');
-	  const userIdInp  = document.querySelector('[data-bc-userid]');
-	  const scheduleSel = document.querySelector('[data-bc-schedule]');
-	  const domInp     = document.querySelector('[data-bc-dom]');
-	  const intInp     = document.querySelector('[data-bc-interval]');
-	  const dowBlock   = document.querySelector('[data-bc-dow]');
-	  const dowHidden  = document.querySelector('[data-bc-dow-hidden]');
-	  const form       = document.querySelector('form[action="/broadcast/new"]');
-	
-	  function applyTarget(){
-		if (!targetSel || !userIdInp) return;
-		userIdInp.style.display = (targetSel.value === 'user') ? 'block' : 'none';
-		if (targetSel.value !== 'user') userIdInp.value = '';
-	  }
-	
-	  function applySchedule(){
-		if (!scheduleSel) return;
-	
-		const v = scheduleSel.value;
-	
-		if (domInp) domInp.style.display = (v === 'monthly') ? 'block' : 'none';
-		if (intInp) intInp.style.display = (v === 'interval_days') ? 'block' : 'none';
-		if (dowBlock) dowBlock.style.display = (v === 'weekly') ? 'flex' : 'none';
-	  }
-	
-	  if (targetSel) targetSel.addEventListener('change', applyTarget);
-	  if (scheduleSel) scheduleSel.addEventListener('change', applySchedule);
-	
-	  if (form) {
-		form.addEventListener('submit', function(){
-		  const selected = [];
-		  document.querySelectorAll('.dow-cb').forEach(cb=>{
-			if(cb.checked) selected.push(cb.value);
-		  });
-	
-		  if (dowHidden)
-			dowHidden.value = selected.length ? selected.join(',') : "0";
-		});
-	  }
-	
-	  applyTarget();
-	  applySchedule();
-	
-	})();
-	</script>
   </div>
-
-  <!-- /START SEQUENCE -->
-  <div class="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mb-8">
-	<div class="flex items-center justify-between mb-3">
+  <!-- /start Sequence -->
+  <div class="card">
+	<div class="card-head">
+	  <span class="card-head-icon">⚡</span>
 	  <div>
-		<div class="text-sm font-medium">/start sequence</div>
-		<div class="text-xs text-white/40 mt-1">
-		  Какие flow запускаются после <span class="text-white/60">/start</span> (delay относительно /start)
-		</div>
-	  </div>
-	  <div class="text-[11px] text-white/40">
-		пример: welcome=0 min, day1=5 min, day2=1 day
+		<h2>/start sequence</h2>
+		<p>Какие flow запускаются после /start (delay относительно /start)</p>
 	  </div>
 	</div>
-
-	<div class="space-y-2">
-	  {% for f in flows %}
-		{% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
-		{% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
-		{% set mode = (tr.mode if tr and tr.mode is defined else "off") %}
-		{% set unit = (tr.offset_unit if tr and tr.offset_unit is defined else "minutes") %}
-
-		<form method="post" action="/flow/{{ f }}/trigger"
-			  class="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
-
-		  <div class="w-36 font-medium truncate">{{ f }}</div>
-
-		  <label class="flex items-center gap-2 text-xs text-white/80 select-none">
-			<input type="checkbox"
-				   name="enabled" value="1"
-				   {% if mode == "auto" and enabled %}checked{% endif %}
-				   class="w-5 h-5 rounded border border-white/30 bg-black/40 accent-emerald-400" />
-			run after /start
-		  </label>
-
-		  <input type="hidden" name="mode" value="auto" />
-
-		  <div class="flex items-center gap-2">
-			<span class="text-xs text-white/40">delay</span>
-			<input type="number" name="offset_value" min="0" step="1"
-				   value="{{ tr.offset_value if tr and tr.offset_value is defined else 0 }}"
-				   class="w-20 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-			<select name="offset_unit"
-					class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-			  <option value="minutes" {% if unit=="minutes" %}selected{% endif %}>minutes</option>
-			  <option value="hours" {% if unit=="hours" %}selected{% endif %}>hours</option>
-			  <option value="days" {% if unit=="days" %}selected{% endif %}>days</option>
+	<div class="card-hint">пример: welcome=0 min, day1=5 min, day2=1 day</div>
+	{% for f in flows %}
+	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
+	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
+	  {% set unit = (tr.offset_unit if tr and tr.offset_unit is defined else "minutes") %}
+	  <form method="POST" action="/save_trigger/{{ f }}">
+		<div class="seq-row">
+		  <div class="seq-left">
+			<span class="badge" style="font-size:13px;font-weight:500;">{{ f }}</span>
+			<label class="check-label">
+			  <input type="checkbox" name="enabled" value="1" {% if enabled %}checked{% endif %}>
+			  run after /start
+			</label>
+		  </div>
+		  <div class="seq-right">
+			<span style="font-size:12px;color:var(--text-muted);">delay</span>
+			<input type="number" name="offset_value" value="{{ tr.offset_value if tr else 0 }}" style="width:70px;text-align:center;">
+			<select name="offset_unit">
+			  <option value="minutes" {% if unit == "minutes" %}selected{% endif %}>minutes</option>
+			  <option value="hours" {% if unit == "hours" %}selected{% endif %}>hours</option>
+			  <option value="days" {% if unit == "days" %}selected{% endif %}>days</option>
+			</select>
+			<button type="submit" class="btn btn-sm btn-primary">Save</button>
+		  </div>
+		</div>
+	  </form>
+	{% endfor %}
+  </div>
+  <!-- After Flow → Start Flow -->
+  <div class="card">
+	<div class="card-head">
+	  <span class="card-head-icon">🔀</span>
+	  <div>
+		<h2>After flow → start flow</h2>
+		<p>Правила: после завершения flow A запустить flow B через задержку (welcome → day1 и т.д.)</p>
+	  </div>
+	</div>
+	<form method="POST" action="/add_action">
+	  <div class="form-row">
+		<div class="form-group">
+		  <span class="form-label">After</span>
+		  <select name="after_flow">
+			{% for f in flows %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+		  </select>
+		</div>
+		<div class="form-group">
+		  <span class="form-label">start</span>
+		  <select name="target_flow">
+			{% for f in flows %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+		  </select>
+		</div>
+		<div class="form-group">
+		  <span class="form-label">after</span>
+		  <div class="inline">
+			<input type="number" name="delay_value" value="5" style="width:70px">
+			<select name="delay_unit">
+			  <option value="seconds">seconds</option>
+			  <option value="minutes">minutes</option>
+			  <option value="hours">hours</option>
+			  <option value="days">days</option>
 			</select>
 		  </div>
-
-		  <button type="submit"
-				  class="ml-auto px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-sm hover:bg-white/15">
-			Save
-		  </button>
-		</form>
-	  {% endfor %}
-	</div>
-  </div>
-
-  <!-- AFTER FLOW → START FLOW -->
-  <div class="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mb-8">
-	<div class="mb-3">
-	  <div class="text-sm font-medium">After flow → start flow</div>
-	  <div class="text-xs text-white/40 mt-1">
-		Правила: после завершения flow A запустить flow B через задержку (welcome → day1 и т.д.)
+		</div>
+		<div class="form-group" style="justify-content:flex-end;">
+		  <button type="submit" class="btn btn-primary">+ Add rule</button>
+		</div>
 	  </div>
-	</div>
-
-	<!-- CREATE -->
-	<form method="post" action="/flow/action/upsert"
-		  class="rounded-xl border border-white/10 bg-black/20 p-3">
-	  <div class="flex flex-wrap items-center gap-3">
-		<div class="text-xs text-white/60">After</div>
-		<select name="after_flow" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-		  {% for f in flows %}
-			<option value="{{ f }}">{{ f }}</option>
-		  {% endfor %}
-		</select>
-
-		<div class="text-xs text-white/60">start</div>
-		<select name="target_flow" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-		  {% for f in flows %}
-			<option value="{{ f }}">{{ f }}</option>
-		  {% endfor %}
-		</select>
-
-		<div class="text-xs text-white/60">after</div>
-		<input type="number" name="delay_value" min="0" step="1" value="0"
-			   class="w-20 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-		<select name="delay_unit" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-		  <option value="seconds">seconds</option>
-		  <option value="minutes" selected>minutes</option>
-		  <option value="hours">hours</option>
-		  <option value="days">days</option>
-		</select>
-
-		<input type="hidden" name="is_active" value="1" />
-
-		<button type="submit"
-				class="ml-auto px-4 py-2 rounded-xl bg-white text-black text-sm font-medium hover:opacity-90">
-		  + Add rule
-		</button>
-	  </div>
-
-	  <div class="text-[11px] text-white/35 mt-2">
-		пример: After <span class="text-white/60">welcome</span> start <span class="text-white/60">day1</span> after <span class="text-white/60">5 minutes</span>
-	  </div>
+	  <div class="card-hint">пример: After welcome start day1 after 5 minutes</div>
 	</form>
-
-	<!-- LIST -->
-	<div class="mt-3 space-y-2">
+	<div>
 	  {% if actions is defined and actions|length > 0 %}
 		{% for a in actions %}
 		  {% set a_active = (a.is_active if a.is_active is defined else 0) %}
-
-		  <div class="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
-			<div class="text-sm font-medium truncate w-44">{{ a.after_flow }}</div>
-			<div class="text-xs text-white/50">→</div>
-			<div class="text-sm font-medium truncate w-44">{{ a.target_flow }}</div>
-
-			<div class="text-xs text-white/50">
-			  delay: <span class="text-white/70">{{ a.delay_seconds }}</span>s
+		  <div class="item-row">
+			<div class="inline" style="gap:10px;">
+			  <span class="badge" style="font-size:13px;font-weight:500;">{{ a.after_flow }}</span>
+			  <span class="chain-arrow">→</span>
+			  <span class="badge" style="font-size:13px;font-weight:500;">{{ a.target_flow }}</span>
+			  <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">delay: {{ a.delay_seconds }}s</span>
 			</div>
-
-			<div class="flex items-center gap-2 ml-auto">
-			  <form method="post" action="/flow/action/upsert">
-				<input type="hidden" name="after_flow" value="{{ a.after_flow }}">
-				<input type="hidden" name="target_flow" value="{{ a.target_flow }}">
-				<input type="hidden" name="delay_seconds" value="{{ a.delay_seconds }}">
-				<input type="hidden" name="is_active" value="{% if a_active|int == 1 %}0{% else %}1{% endif %}">
-				<button type="submit"
-						class="px-3 py-2 rounded-xl border text-sm
-						{% if a_active|int == 1 %}
-						  bg-emerald-500/10 border-emerald-500/20 text-emerald-200 hover:bg-emerald-500/15
-						{% else %}
-						  bg-red-500/10 border-red-500/20 text-red-200 hover:bg-red-500/15
-						{% endif %}">
+			<div class="item-actions">
+			  <form method="POST" action="/toggle_action/{{ a.id }}" style="display:inline">
+				<button type="submit" class="pill {% if a_active|int == 1 %}pill-on{% else %}pill-off{% endif %}" style="border:none;cursor:pointer;">
 				  {% if a_active|int == 1 %}ENABLED{% else %}DISABLED{% endif %}
 				</button>
 			  </form>
-
-			  <form method="post" action="/flow/action/{{ a.id }}/delete" onsubmit="return confirm('Удалить правило?')">
-				<button type="submit"
-						class="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm hover:bg-red-500/20 text-red-200">
-				  Delete
-				</button>
+			  <form method="POST" action="/delete_action/{{ a.id }}" style="display:inline" onsubmit="return confirm('Delete this rule?')">
+				<button type="submit" class="btn btn-sm btn-danger">Delete</button>
 			  </form>
 			</div>
 		  </div>
 		{% endfor %}
 	  {% else %}
-		<div class="text-sm text-white/45">Пока нет правил. Добавь welcome → day1.</div>
+		<div class="empty">Пока нет правил. Добавь welcome → day1.</div>
 	  {% endif %}
 	</div>
   </div>
-
-  <!-- FLOWS HEADER -->
-  <div class="flex items-start justify-between gap-4">
-	<div>
-	  <h1 class="text-base font-medium">Flows</h1>
-	  <div class="text-xs text-white/40 mt-1">
-		Порядок flow меняется ↑/↓. Удаление — безопасно (сотрёт блоки).
+  <!-- Flows -->
+  <div class="card">
+	<div class="card-head">
+	  <span class="card-head-icon">📦</span>
+	  <div>
+		<h2>Flows</h2>
+		<p>Порядок flow меняется ↑/↓. Удаление — безопасно (сотрёт блоки).</p>
 	  </div>
 	</div>
-
-	<form method="post" action="/flow/new" class="flex items-center gap-2">
-	  <input type="text" name="name" required autocomplete="off"
-			 placeholder="new flow name (e.g. day4)"
-			 class="w-56 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-	  <button type="submit"
-			  class="px-4 py-2 rounded-xl bg-white text-black text-sm font-medium hover:opacity-90">
-		+ New flow
-	  </button>
+	<form method="POST" action="/add_flow" class="form-row">
+	  <div class="form-group grow">
+		<input type="text" name="flow_name" placeholder="New flow name">
+	  </div>
+	  <div class="form-group" style="justify-content:flex-end;">
+		<button type="submit" class="btn btn-primary">+ New flow</button>
+	  </div>
 	</form>
-  </div>
-
-  <!-- FLOWS LIST -->
-  <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
 	{% for f in flows %}
 	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
 	  {% set mode = (tr.mode if tr and tr.mode is defined else "off") %}
 	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
-
-	  <div class="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-4">
-		<div class="flex items-center justify-between gap-3">
-		  <a href="/flow/{{ f }}" class="min-w-0">
-			<div class="font-medium truncate">{{ f }}</div>
-			<div class="text-xs text-white/35 mt-1">open →</div>
-		  </a>
-
-		  <div class="flex items-center gap-2">
-			<form method="post" action="/flow/{{ f }}/up">
-			  <button type="submit" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10">↑</button>
+	  <div>
+		<div class="flow-header" onclick="var d=document.getElementById('flow-detail-{{ loop.index }}');d.style.display=d.style.display==='none'?'block':'none';">
+		  <div class="inline" style="gap:10px;">
+			<span class="flow-name">{{ f }}</span>
+			<span class="pill {% if mode == 'auto' %}pill-auto{% elif mode == 'manual' %}pill-manual{% else %}pill-off{% endif %}">
+			  {{ mode|upper }}
+			</span>
+			<a href="/flow/{{ f }}" class="btn-link" style="font-size:12px;" onclick="event.stopPropagation();">open →</a>
+		  </div>
+		  <div class="flow-controls">
+			<form method="POST" action="/move_flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
+			  <button type="submit" class="flow-btn">↑</button>
 			</form>
-
-			<form method="post" action="/flow/{{ f }}/down">
-			  <button type="submit" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10">↓</button>
+			<form method="POST" action="/move_flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
+			  <button type="submit" class="flow-btn">↓</button>
 			</form>
-
-			<form method="post" action="/flow/{{ f }}/delete" onsubmit="return confirm('Удалить flow и все блоки внутри?')">
-			  <button type="submit" class="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm hover:bg-red-500/20 text-red-200">
-				Delete
-			  </button>
+			<form method="POST" action="/delete_flow/{{ f }}" style="display:inline" onclick="event.stopPropagation();" onsubmit="return confirm('Delete flow {{ f }}?')">
+			  <button type="submit" class="flow-btn del">🗑</button>
 			</form>
 		  </div>
 		</div>
-
-		<div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-3">
-		  <div class="flex items-center justify-between gap-3">
-			<div class="text-xs text-white/55">Delivery mode</div>
-
-			{% if mode == "auto" %}
-			  <span class="text-[11px] px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">AUTO</span>
-			{% elif mode == "off" %}
-			  <span class="text-[11px] px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-200">OFF</span>
-			{% else %}
-			  <span class="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white/60">MANUAL</span>
-			{% endif %}
+		<div id="flow-detail-{{ loop.index }}" class="flow-detail" style="display:none;">
+		  <div class="flow-detail-inner">
+			<h4>Delivery mode</h4>
+			<form method="POST" action="/save_flow_mode/{{ f }}">
+			  <div class="row" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+				<span style="font-size:12px;color:var(--text-muted);">Mode</span>
+				<select name="mode">
+				  <option value="off" {% if mode == "off" %}selected{% endif %}>off</option>
+				  <option value="manual" {% if mode == "manual" %}selected{% endif %}>manual</option>
+				  <option value="auto" {% if mode == "auto" %}selected{% endif %}>auto</option>
+				</select>
+				<button type="submit" class="btn btn-sm btn-primary">Save</button>
+			  </div>
+			</form>
+			<form method="POST" action="/save_flow_auto/{{ f }}">
+			  <div style="border-top:1px solid var(--border);padding-top:12px;">
+				<h4>Auto-send after /start</h4>
+				<div class="row" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+				  <input type="number" name="offset_value" value="{{ tr.offset_value if tr else 0 }}" style="width:70px;text-align:center;">
+				  {% set unit2 = (tr.offset_unit if tr and tr.offset_unit is defined else "days") %}
+				  <select name="offset_unit">
+					<option value="minutes" {% if unit2 == "minutes" %}selected{% endif %}>minutes</option>
+					<option value="hours" {% if unit2 == "hours" %}selected{% endif %}>hours</option>
+					<option value="days" {% if unit2 == "days" %}selected{% endif %}>days</option>
+				  </select>
+				  <label class="check-label">
+					<input type="checkbox" name="enabled" value="1" {% if enabled %}checked{% endif %}>
+					enabled
+				  </label>
+				  <button type="submit" class="btn btn-sm btn-primary">Save</button>
+				</div>
+				<p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Пример: day2 → 1 days, day3 → 2 days.</p>
+			  </div>
+			</form>
 		  </div>
-
-		  <form method="post" action="/flow/{{ f }}/trigger" class="mt-3 space-y-2" data-flow-settings>
-			<div class="flex flex-wrap items-center gap-2">
-			  <label class="text-xs text-white/60">Mode</label>
-
-			  <select name="mode" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" data-mode>
-				<option value="off" {% if mode=="off" %}selected{% endif %}>off</option>
-				<option value="manual" {% if mode=="manual" %}selected{% endif %}>manual</option>
-				<option value="auto" {% if mode=="auto" %}selected{% endif %}>auto</option>
-			  </select>
-
-			  <button type="submit"
-					  class="px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-sm hover:bg-white/15">
-				Save
-			  </button>
-
-			  <button type="button"
-					  class="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm hover:bg-red-500/20 text-red-200"
-					  onclick="resetFlowSettings('{{ f }}')">
-				Reset
-			  </button>
-			</div>
-
-			<div class="flex flex-wrap items-center gap-2" data-auto>
-			  <div class="text-xs text-white/60">Auto-send after /start</div>
-
-			  <input type="number" name="offset_value" min="0" step="1"
-					 value="{{ tr.offset_value if tr and tr.offset_value is defined else 0 }}"
-					 class="w-24 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" />
-
-			  <select name="offset_unit" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm">
-				{% set unit2 = (tr.offset_unit if tr and tr.offset_unit is defined else "days") %}
-				<option value="minutes" {% if unit2=="minutes" %}selected{% endif %}>minutes</option>
-				<option value="hours" {% if unit2=="hours" %}selected{% endif %}>hours</option>
-				<option value="days" {% if unit2=="days" %}selected{% endif %}>days</option>
-			  </select>
-
-			  <label class="flex items-center gap-2 text-xs text-white/80 ml-2 select-none">
-				<input type="checkbox" name="enabled" value="1"
-					   {% if mode=="auto" and enabled %}checked{% endif %}
-					   class="w-5 h-5 rounded border border-white/30 bg-black/40 accent-emerald-400"
-					   data-enabled />
-				enabled
-			  </label>
-			</div>
-
-			<div class="text-[11px] text-white/35" data-auto-hint>
-			  Пример: day2 → 1 days, day3 → 2 days.
-			</div>
-		  </form>
 		</div>
-
 	  </div>
 	{% endfor %}
+	{% if flows|length == 0 %}
+	  <div class="empty">Нет flows. Запусти seed.py.</div>
+	{% endif %}
   </div>
-
-  {% if flows|length == 0 %}
-	<div class="mt-4 text-white/50 text-sm">Нет flows. Запусти seed.py.</div>
-  {% endif %}
-
-  <script>
-	(function(){
-	  const forms = document.querySelectorAll('[data-flow-settings]');
-	  forms.forEach(form => {
-		const modeSel = form.querySelector('[data-mode]');
-		const autoRow = form.querySelector('[data-auto]');
-		const hint = form.querySelector('[data-auto-hint]');
-		const enabledCb = form.querySelector('[data-enabled]');
-
-		function apply() {
-		  const m = (modeSel?.value || 'off');
-		  const showAuto = (m === 'auto');
-		  if (autoRow) autoRow.style.display = showAuto ? 'flex' : 'none';
-		  if (hint) hint.style.display = showAuto ? 'block' : 'none';
-		  if (!showAuto && enabledCb) enabledCb.checked = false;
-		}
-
-		if (modeSel) modeSel.addEventListener('change', apply);
-		apply();
-	  });
-	})();
-
-	function resetFlowSettings(flowName) {
-	  if (!confirm('Сбросить настройки доставки для этого flow?')) return;
-	  const f = document.createElement('form');
-	  f.method = 'post';
-	  f.action = '/flow/' + encodeURIComponent(flowName) + '/trigger/delete';
-	  document.body.appendChild(f);
-	  f.submit();
-	}
-  </script>
-
+</div>
 {% endblock %}
