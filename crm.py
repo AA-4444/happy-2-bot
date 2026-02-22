@@ -341,10 +341,11 @@ async def broadcast_new(
 	target_user_id: int = Form(0),
 
 	# schedule
-	schedule_type: str = Form("monthly"),   # monthly | interval_days
-	days_of_month: str = Form("1"),         # "1" or "1,15"
-	interval_days: int = Form(30),   
-	days_of_week: str = Form(""),       # for interval_days
+	# schedule
+	schedule_type: str = Form("monthly"),   # monthly | weekly | interval_days
+	days_of_month: str = Form("1"),         # for monthly
+	days_of_week: str = Form(""),           # for weekly (0..6)
+	interval_days: int = Form(30),          # for interval_days      # for interval_days
 	at_hour: int = Form(12),
 	at_minute: int = Form(0),
 
@@ -371,10 +372,26 @@ async def broadcast_new(
 			return RedirectResponse("/", status_code=302)
 
 	schedule_type = _norm_schedule_type(schedule_type)
+	
 	days_of_month = _norm_days_of_month(days_of_month)
+	
+	# weekly sanitize
+	if schedule_type == "weekly":
+		parts = []
+		for p in (days_of_week or "").split(","):
+			p = p.strip()
+			if p.isdigit():
+				d = int(p)
+				if 0 <= d <= 6:
+					parts.append(str(d))
+		days_of_week = ",".join(sorted(set(parts))) or "0"
+	else:
+		days_of_week = ""
+	
 	interval_days = int(interval_days or 30)
 	if interval_days < 1:
 		interval_days = 1
+	
 
 	at_hour = _clamp_int(at_hour, 0, 23)
 	at_minute = _clamp_int(at_minute, 0, 59)
