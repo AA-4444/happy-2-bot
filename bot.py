@@ -26,6 +26,9 @@ from db import (
 
 	# flow modes
 	get_flow_modes,
+	
+	fetch_due_broadcasts,
+	bump_broadcast_next_run,
 
 	# flow actions
 	get_flow_actions,
@@ -758,6 +761,27 @@ async def jobs_loop():
 					await refresh_flow_modes()
 
 				due = await fetch_due_jobs(50)
+			# ✅ BROADCASTS
+			try:
+				due_broadcasts = await fetch_due_broadcasts(20)
+				for b in due_broadcasts:
+					flow = b["flow"]
+					target = b["target_user_id"]
+			
+					now = int(time.time())
+			
+					if target is None:
+						users = await get_users(50000)
+						for u in users:
+							uid = int(u["user_id"])
+							await upsert_job(uid, _job_flow(flow), now)
+					else:
+						uid = int(target)
+						await upsert_job(uid, _job_flow(flow), now)
+			
+					await bump_broadcast_next_run(b["id"])
+			except Exception:
+				pass
 
 				for job in due:
 					jid = int(job["id"])

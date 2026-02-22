@@ -234,6 +234,7 @@ async def init_db():
 			schedule_type TEXT NOT NULL DEFAULT 'monthly',  -- monthly | interval_days
 			interval_days BIGINT NOT NULL DEFAULT 30,       -- for interval_days
 			days_of_month TEXT NOT NULL DEFAULT '1',        -- for monthly: "1" or "1,15"
+			days_of_week TEXT NOT NULL DEFAULT '0', 
 			at_hour INTEGER NOT NULL DEFAULT 12,            -- 0..23
 			at_minute INTEGER NOT NULL DEFAULT 0,           -- 0..59
 			next_run_ts BIGINT NOT NULL DEFAULT 0,
@@ -242,6 +243,12 @@ async def init_db():
 			created_ts BIGINT NOT NULL DEFAULT 0
 		);
 		""")
+		
+		# ✅ ensure days_of_week exists (for old DB)
+		if not await _column_exists(conn, "broadcasts", "days_of_week"):
+			await conn.execute(
+				"ALTER TABLE broadcasts ADD COLUMN days_of_week TEXT NOT NULL DEFAULT '0';"
+			)
 
 		# ---------------- MIGRATIONS ----------------
 
@@ -314,6 +321,11 @@ async def init_db():
 				created_ts BIGINT NOT NULL DEFAULT 0
 			);
 			""")
+			# ✅ add weekly support if column missing
+			if not await _column_exists(conn, "broadcasts", "days_of_week"):
+				await conn.execute(
+					"ALTER TABLE broadcasts ADD COLUMN days_of_week TEXT NOT NULL DEFAULT '0';"
+				)
 
 		# ✅ FIX: на уже существующей базе тоже меняем default delay_seconds на 0.0
 		try:
@@ -409,6 +421,39 @@ def _compute_next_interval_days(interval_days: int, at_hour: int, at_minute: int
 	next_run = datetime(next_dt.year, next_dt.month, next_dt.day, at_hour, at_minute, 0, tzinfo=timezone.utc)
 	return int(next_run.timestamp())
 
+def _compute_next_weekly(days_csv: str, at_hour: int, at_minute: int, from_ts: Optional[int] = None) -> int:
+	from_ts = int(from_ts or _now_ts())
+	dt = datetime.fromtimestamp(from_ts, tz=timezone.utc)
+	
+	days: List[int] = []
+	for part in (days_csv or "").split(","):
+		part = part.strip()
+		if part.isdigit():
+			d = int(part)
+			if 0 <= d <= 6:
+				days.append(d)
+	
+	days = sorted(set(days)) or [0]
+	
+	at_hour = max(0, min(23, int(at_hour or 0)))
+	at_minute = max(0, min(59, int(at_minute or 0)))
+	
+	for i in range(0, 8):
+		candidate = dt + timedelta(days=i)
+		if candidate.weekday() in days:
+			run = datetime(
+				candidate.year,
+				candidate.month,
+				candidate.day,
+				at_hour,
+				at_minute,
+				0,
+				tzinfo=timezone.utc
+			)
+			if int(run.timestamp()) > from_ts:
+				return int(run.timestamp())
+	
+	return from_ts + 7 * 86400
 
 async def get_all_user_ids(limit: int = 200000) -> List[int]:
 	pool = await get_pool()
@@ -422,10 +467,12 @@ async def list_broadcasts() -> List[Dict]:
 	async with pool.acquire() as conn:
 		rows = await conn.fetch("""
 			SELECT id, title, flow, target_user_id, schedule_type, interval_days, days_of_month,
+				   days_of_week,
 				   at_hour, at_minute, next_run_ts, last_run_ts, is_active, created_ts
 			FROM broadcasts
 			ORDER BY id DESC;
 		""")
+	
 	return [
 		{
 			"id": int(r["id"]),
@@ -435,6 +482,7 @@ async def list_broadcasts() -> List[Dict]:
 			"schedule_type": (r["schedule_type"] or "monthly").strip(),
 			"interval_days": int(r["interval_days"] or 30),
 			"days_of_month": (r["days_of_month"] or "1").strip(),
+			"days_of_week": (r["days_of_week"] or "0").strip(),
 			"at_hour": int(r["at_hour"] or 12),
 			"at_minute": int(r["at_minute"] or 0),
 			"next_run_ts": int(r["next_run_ts"] or 0),
@@ -444,6 +492,7 @@ async def list_broadcasts() -> List[Dict]:
 		}
 		for r in rows
 	]
+	
 
 
 async def create_broadcast(
@@ -453,6 +502,7 @@ async def create_broadcast(
 	schedule_type: str,
 	interval_days: int,
 	days_of_month: str,
+	days_of_week: str,
 	at_hour: int,
 	at_minute: int,
 	is_active: int = 1,
@@ -463,7 +513,7 @@ async def create_broadcast(
 		return
 
 	st = (schedule_type or "monthly").strip().lower()
-	if st not in ("monthly", "interval_days"):
+	if st not in ("monthly", "interval_days", "weekly"):
 		st = "monthly"
 
 	target_uid: Optional[int] = None
@@ -477,6 +527,8 @@ async def create_broadcast(
 
 	if st == "monthly":
 		next_run = _compute_next_monthly(days_of_month, at_hour, at_minute, from_ts=now)
+	elif st == "weekly":
+		next_run = _compute_next_weekly(days_of_week, at_hour, at_minute, from_ts=now)
 	else:
 		next_run = _compute_next_interval_days(interval_days, at_hour, at_minute, from_ts=now)
 
@@ -484,9 +536,10 @@ async def create_broadcast(
 	async with pool.acquire() as conn:
 		await conn.execute("""
 			INSERT INTO broadcasts
-			(title, flow, target_user_id, schedule_type, interval_days, days_of_month, at_hour, at_minute,
+			(title, flow, target_user_id, schedule_type, interval_days,
+			 days_of_month, days_of_week, at_hour, at_minute,
 			 next_run_ts, last_run_ts, is_active, created_ts)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,0,$10,$11);
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,0,$11,$12);
 		""",
 			title,
 			flow,
@@ -494,6 +547,7 @@ async def create_broadcast(
 			st,
 			int(interval_days or 30),
 			(days_of_month or "1").strip(),
+			(days_of_week or "0").strip(),
 			int(at_hour or 12),
 			int(at_minute or 0),
 			int(next_run),
@@ -524,7 +578,8 @@ async def fetch_due_broadcasts(limit: int = 20) -> List[Dict]:
 	async with pool.acquire() as conn:
 		rows = await conn.fetch("""
 			SELECT id, title, flow, target_user_id, schedule_type, interval_days, days_of_month,
-				   at_hour, at_minute, next_run_ts
+			   days_of_week,
+			   at_hour, at_minute, next_run_ts
 			FROM broadcasts
 			WHERE is_active=1 AND next_run_ts > 0 AND next_run_ts <= $1
 			ORDER BY next_run_ts ASC
@@ -540,6 +595,7 @@ async def fetch_due_broadcasts(limit: int = 20) -> List[Dict]:
 			"schedule_type": (r["schedule_type"] or "monthly").strip(),
 			"interval_days": int(r["interval_days"] or 30),
 			"days_of_month": (r["days_of_month"] or "1").strip(),
+			"days_of_week": (r["days_of_week"] or "0").strip(),   # ✅ ДОБАВЛЕНО
 			"at_hour": int(r["at_hour"] or 12),
 			"at_minute": int(r["at_minute"] or 0),
 			"next_run_ts": int(r["next_run_ts"] or 0),
@@ -555,7 +611,7 @@ async def bump_broadcast_next_run(broadcast_id: int) -> None:
 	pool = await get_pool()
 	async with pool.acquire() as conn:
 		r = await conn.fetchrow("""
-			SELECT schedule_type, interval_days, days_of_month, at_hour, at_minute
+			SELECT schedule_type, interval_days, days_of_month, days_of_week, at_hour, at_minute
 			FROM broadcasts
 			WHERE id=$1;
 		""", int(broadcast_id))
@@ -569,8 +625,12 @@ async def bump_broadcast_next_run(broadcast_id: int) -> None:
 		at_hour = int(r["at_hour"] or 12)
 		at_minute = int(r["at_minute"] or 0)
 
+		days_of_week = (r["days_of_week"] or "0").strip()
+		
 		if st == "monthly":
 			next_run = _compute_next_monthly(days_of_month, at_hour, at_minute, from_ts=now)
+		elif st == "weekly":
+			next_run = _compute_next_weekly(days_of_week, at_hour, at_minute, from_ts=now)
 		else:
 			next_run = _compute_next_interval_days(interval_days, at_hour, at_minute, from_ts=now)
 
