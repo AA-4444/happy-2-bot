@@ -245,24 +245,24 @@ async def init_db():
 		);
 		""")
 	
-	# 🔥 FIX: ensure all broadcast columns exist (old DB migration)
-	
-	broadcast_columns = {
-		"schedule_type": "TEXT NOT NULL DEFAULT 'monthly'",
-		"interval_days": "BIGINT NOT NULL DEFAULT 30",
-		"days_of_month": "TEXT NOT NULL DEFAULT '1'",
-		"days_of_week": "TEXT NOT NULL DEFAULT '0'",
-		"at_hour": "INTEGER NOT NULL DEFAULT 12",
-		"at_minute": "INTEGER NOT NULL DEFAULT 0",
-		"next_run_ts": "BIGINT NOT NULL DEFAULT 0",
-		"last_run_ts": "BIGINT NOT NULL DEFAULT 0",
-		"is_active": "INTEGER NOT NULL DEFAULT 1",
-		"created_ts": "BIGINT NOT NULL DEFAULT 0",
-	}
-	
-	for col, ddl in broadcast_columns.items():
-		if not await _column_exists(conn, "broadcasts", col):
-			await conn.execute(f"ALTER TABLE broadcasts ADD COLUMN {col} {ddl};")
+		# 🔥 FIX: ensure all broadcast columns exist (old DB migration)
+		
+		broadcast_columns = {
+			"schedule_type": "TEXT NOT NULL DEFAULT 'monthly'",
+			"interval_days": "BIGINT NOT NULL DEFAULT 30",
+			"days_of_month": "TEXT NOT NULL DEFAULT '1'",
+			"days_of_week": "TEXT NOT NULL DEFAULT '0'",
+			"at_hour": "INTEGER NOT NULL DEFAULT 12",
+			"at_minute": "INTEGER NOT NULL DEFAULT 0",
+			"next_run_ts": "BIGINT NOT NULL DEFAULT 0",
+			"last_run_ts": "BIGINT NOT NULL DEFAULT 0",
+			"is_active": "INTEGER NOT NULL DEFAULT 1",
+			"created_ts": "BIGINT NOT NULL DEFAULT 0",
+		}
+		
+		for col, ddl in broadcast_columns.items():
+			if not await _column_exists(conn, "broadcasts", col):
+				await conn.execute(f"ALTER TABLE broadcasts ADD COLUMN {col} {ddl};")
 			
 
 		# ---------------- MIGRATIONS ----------------
