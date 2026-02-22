@@ -671,82 +671,82 @@ async def _run_broadcast_job(current_uid: int, job_key: str) -> None:
 
 # ─────────────────────────────────────────────────────────────
 # Jobs worker (НЕ блокируем очередь ожиданием render_flow)
-
 async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 	async with _JOB_SEM:
 		try:
-	
-		if job_key.startswith("flow:"):
-			flow = job_key.split(":", 1)[1].strip()
-			if flow:
-				await render_flow(uid, flow)
-
-		elif job_key.startswith("action:"):
-			aid_s = job_key.split(":", 1)[1].strip()
-			try:
-				aid = int(aid_s)
-			except Exception:
-				aid = 0
-
-			if aid > 0:
+			if job_key.startswith("flow:"):
+				flow = job_key.split(":", 1)[1].strip()
+				if flow:
+					await render_flow(uid, flow)
+		
+			elif job_key.startswith("action:"):
+				aid_s = job_key.split(":", 1)[1].strip()
 				try:
-					actions = await get_flow_actions(None)
+					aid = int(aid_s)
 				except Exception:
-					actions = []
-
-				target = ""
-				for a in actions or []:
-					if int(a.get("id") or 0) == aid and int(a.get("is_active") or 0) == 1:
-						target = (a.get("target_flow") or "").strip()
-						break
-
-				if target:
-					await render_flow(uid, target)
-
-		elif job_key.startswith("gate:"):
-			parts = job_key.split(":", 2)
-			if len(parts) == 3:
-				block_id = int(parts[1])
-				next_flow = parts[2].strip()
-
-				if block_id > 0 and await is_gate_pressed(uid, block_id):
-					pass
-				else:
-					btn_text = "Дальше"
-					text = " "
+					aid = 0
+		
+				if aid > 0:
 					try:
-						b = await get_block(block_id)
-						if b:
-							custom = (b.get("gate_reminder_text") or "").strip()
-							if custom:
-								text = custom
-							bt = (b.get("gate_button_text") or "").strip()
-							if bt:
-								btn_text = bt
+						actions = await get_flow_actions(None)
 					except Exception:
+						actions = []
+		
+					target = ""
+					for a in actions or []:
+						if int(a.get("id") or 0) == aid and int(a.get("is_active") or 0) == 1:
+							target = (a.get("target_flow") or "").strip()
+							break
+		
+					if target:
+						await render_flow(uid, target)
+		
+			elif job_key.startswith("gate:"):
+				parts = job_key.split(":", 2)
+				if len(parts) == 3:
+					block_id = int(parts[1])
+					next_flow = parts[2].strip()
+		
+					if block_id > 0 and await is_gate_pressed(uid, block_id):
 						pass
-
-					await bot.send_message(
-						uid,
-						text,
-						reply_markup=InlineKeyboardMarkup(
-							inline_keyboard=[[
-								InlineKeyboardButton(
-									text=btn_text,
-									callback_data=_gate_cb(uid, block_id, next_flow)
-								)
-							]]
+					else:
+						btn_text = "Дальше"
+						text = " "
+						try:
+							b = await get_block(block_id)
+							if b:
+								custom = (b.get("gate_reminder_text") or "").strip()
+								if custom:
+									text = custom
+								bt = (b.get("gate_button_text") or "").strip()
+								if bt:
+									btn_text = bt
+						except Exception:
+							pass
+		
+						await bot.send_message(
+							uid,
+							text,
+							reply_markup=InlineKeyboardMarkup(
+								inline_keyboard=[[
+									InlineKeyboardButton(
+										text=btn_text,
+										callback_data=_gate_cb(uid, block_id, next_flow)
+									)
+								]]
+							)
 						)
-					)
-
-		elif job_key.startswith("broadcast:"):
-			await _run_broadcast_job(uid, job_key)
-
-	finally:
-		try:
-			await mark_job_done(jid)
+		
+			elif job_key.startswith("broadcast:"):
+				await _run_broadcast_job(uid, job_key)
+		
 		finally:
-			_RUNNING_JOBS.discard(int(jid))
+			try:
+				await mark_job_done(jid)
+			finally:
+				_RUNNING_JOBS.discard(int(jid))
+	
+
 
 
 async def jobs_loop():
