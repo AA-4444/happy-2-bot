@@ -780,31 +780,32 @@ async def jobs_loop():
 				)
 			
 					# ───────────── BROADCASTS ─────────────
+			try:
+				due_broadcasts = await fetch_due_broadcasts(20)
+			except Exception:
+				due_broadcasts = []
+			
+			for b in due_broadcasts:
 				try:
-					due_broadcasts = await fetch_due_broadcasts(20)
-				except Exception:
-					due_broadcasts = []
+					flow = b["flow"]
+					target = b["target_user_id"]
+					now = int(time.time())
 			
-				for b in due_broadcasts:
-					try:
-						flow = b["flow"]
-						target = b["target_user_id"]
-						now = int(time.time())
-			
-						if target is None:
-							users = await get_users(50000)
-							for u in users:
-								uid = int(u["user_id"])
-								await upsert_job(uid, f"broadcast:{flow}", now)
-						else:
-							uid = int(target)
+					if target is None:
+						users = await get_users(50000)
+						for u in users:
+							uid = int(u["user_id"])
 							await upsert_job(uid, f"broadcast:{flow}", now)
+							
+					else:
+						uid = int(target)
+						await upsert_job(uid, f"broadcast:{flow}", now)
 			
-						await bump_broadcast_next_run(b["id"])
-					except Exception:
-							continue
+					await bump_broadcast_next_run(b["id"])
+				except Exception:
+					continue
 			
-				await asyncio.sleep(1)
+			await asyncio.sleep(1)
 			
 	except asyncio.CancelledError:
 		return
