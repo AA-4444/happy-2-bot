@@ -749,58 +749,65 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 
 
 async def jobs_loop():
-	last_modes_refresh = 0
-
-	try:
-		while True:
-			try:
-				now = int(time.time())
-
-				if now - last_modes_refresh >= _FLOW_MODES_REFRESH_SECONDS:
-					last_modes_refresh = now
-					await refresh_flow_modes()
-
-				due = await fetch_due_jobs(50)
-			# ✅ BROADCASTS
-			try:
-				due_broadcasts = await fetch_due_broadcasts(20)
-				for b in due_broadcasts:
-					flow = b["flow"]
-					target = b["target_user_id"]
-			
-					now = int(time.time())
-			
-					if target is None:
-						users = await get_users(50000)
-						for u in users:
-							uid = int(u["user_id"])
-							await upsert_job(uid, _job_flow(flow), now)
-					else:
-						uid = int(target)
-						await upsert_job(uid, _job_flow(flow), now)
-			
-					await bump_broadcast_next_run(b["id"])
-			except Exception:
-				pass
-
-				for job in due:
-					jid = int(job["id"])
-					if jid in _RUNNING_JOBS:
-						continue
-					_RUNNING_JOBS.add(jid)
-
-					uid = int(job["user_id"])
-					job_key = (job.get("flow") or "").strip()
-
-					asyncio.create_task(_execute_job_and_mark_done(jid, uid, job_key))
-
-			except Exception:
-				pass
-
-			await asyncio.sleep(1)
-
-	except asyncio.CancelledError:
-		return
+				last_modes_refresh = 0
+				
+				try:
+					while True:
+						now = int(time.time())
+				
+						# refresh modes
+						if now - last_modes_refresh >= _FLOW_MODES_REFRESH_SECONDS:
+							last_modes_refresh = now
+							await refresh_flow_modes()
+				
+						# ───────────── обычные jobs ─────────────
+						try:
+							due = await fetch_due_jobs(50)
+						except Exception:
+							due = []
+				
+						for job in due:
+							jid = int(job["id"])
+							if jid in _RUNNING_JOBS:
+								continue
+				
+							_RUNNING_JOBS.add(jid)
+							uid = int(job["user_id"])
+							job_key = (job.get("flow") or "").strip()
+				
+							asyncio.create_task(
+								_execute_job_and_mark_done(jid, uid, job_key)
+							)
+				
+						# ───────────── BROADCASTS ─────────────
+						try:
+							due_broadcasts = await fetch_due_broadcasts(20)
+						except Exception:
+							due_broadcasts = []
+				
+						for b in due_broadcasts:
+							try:
+								flow = b["flow"]
+								target = b["target_user_id"]
+								now = int(time.time())
+				
+								if target is None:
+									users = await get_users(50000)
+									for u in users:
+										uid = int(u["user_id"])
+										await upsert_job(uid, _job_flow(flow), now)
+								else:
+									uid = int(target)
+									await upsert_job(uid, _job_flow(flow), now)
+				
+								await bump_broadcast_next_run(b["id"])
+							except Exception:
+								continue
+				
+						await asyncio.sleep(1)
+				
+				except asyncio.CancelledError:
+					return
 
 
 # ─────────────────────────────────────────────────────────────
