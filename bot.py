@@ -678,35 +678,40 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 				flow = job_key.split(":", 1)[1].strip()
 				if flow:
 					await render_flow(uid, flow)
-		
+
 			elif job_key.startswith("action:"):
 				aid_s = job_key.split(":", 1)[1].strip()
 				try:
 					aid = int(aid_s)
 				except Exception:
-					aid = 0
-		
+						aid = 0
+
 				if aid > 0:
 					try:
 						actions = await get_flow_actions(None)
 					except Exception:
 						actions = []
-		
+
 					target = ""
 					for a in actions or []:
 						if int(a.get("id") or 0) == aid and int(a.get("is_active") or 0) == 1:
 							target = (a.get("target_flow") or "").strip()
 							break
-		
+
 					if target:
 						await render_flow(uid, target)
-		
+
+			elif job_key.startswith("broadcast:"):
+				flow = job_key.split(":", 1)[1].strip()
+				if flow:
+					await render_flow(uid, flow)
+
 			elif job_key.startswith("gate:"):
 				parts = job_key.split(":", 2)
 				if len(parts) == 3:
 					block_id = int(parts[1])
 					next_flow = parts[2].strip()
-		
+
 					if block_id > 0 and await is_gate_pressed(uid, block_id):
 						pass
 					else:
@@ -723,7 +728,7 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 									btn_text = bt
 						except Exception:
 							pass
-		
+
 						await bot.send_message(
 							uid,
 							text,
@@ -736,10 +741,7 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 								]]
 							)
 						)
-		
-			elif job_key.startswith("broadcast:"):
-				await _run_broadcast_job(uid, job_key)
-		
+
 		finally:
 			try:
 				await mark_job_done(jid)
@@ -747,69 +749,66 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 				_RUNNING_JOBS.discard(int(jid))
 	
 
-
-
 async def jobs_loop():
-				last_modes_refresh = 0
+	last_modes_refresh = 0
 				
+	try:
+		while True:
+			now = int(time.time())
+			
+			if now - last_modes_refresh >= _FLOW_MODES_REFRESH_SECONDS:
+				last_modes_refresh = now
+				await refresh_flow_modes()
+			
+			# ───────────── обычные jobs ─────────────
+			try:
+				due = await fetch_due_jobs(50)
+			except Exception:
+				due = []
+			
+			for job in due:
+				jid = int(job["id"])
+				if jid in _RUNNING_JOBS:
+					continue
+			
+				_RUNNING_JOBS.add(jid)
+				uid = int(job["user_id"])
+				job_key = (job.get("flow") or "").strip()
+			
+				asyncio.create_task(
+					_execute_job_and_mark_done(jid, uid, job_key)
+				)
+			
+					# ───────────── BROADCASTS ─────────────
 				try:
-					while True:
+					due_broadcasts = await fetch_due_broadcasts(20)
+				except Exception:
+					due_broadcasts = []
+			
+				for b in due_broadcasts:
+					try:
+						flow = b["flow"]
+						target = b["target_user_id"]
 						now = int(time.time())
-				
-						# refresh modes
-						if now - last_modes_refresh >= _FLOW_MODES_REFRESH_SECONDS:
-							last_modes_refresh = now
-							await refresh_flow_modes()
-				
-						# ───────────── обычные jobs ─────────────
-						try:
-							due = await fetch_due_jobs(50)
-						except Exception:
-							due = []
-				
-						for job in due:
-							jid = int(job["id"])
-							if jid in _RUNNING_JOBS:
-								continue
-				
-							_RUNNING_JOBS.add(jid)
-							uid = int(job["user_id"])
-							job_key = (job.get("flow") or "").strip()
-				
-							asyncio.create_task(
-								_execute_job_and_mark_done(jid, uid, job_key)
-							)
-				
-						# ───────────── BROADCASTS ─────────────
-						try:
-							due_broadcasts = await fetch_due_broadcasts(20)
-						except Exception:
-							due_broadcasts = []
-				
-						for b in due_broadcasts:
-							try:
-								flow = b["flow"]
-								target = b["target_user_id"]
-								now = int(time.time())
-				
-								if target is None:
-									users = await get_users(50000)
-									for u in users:
-										uid = int(u["user_id"])
-										await upsert_job(uid, _job_flow(flow), now)
-								else:
-									uid = int(target)
-									await upsert_job(uid, _job_flow(flow), now)
-				
-								await bump_broadcast_next_run(b["id"])
-							except Exception:
-								continue
-				
-						await asyncio.sleep(1)
-				
-				except asyncio.CancelledError:
-					return
-
+			
+						if target is None:
+							users = await get_users(50000)
+							for u in users:
+								uid = int(u["user_id"])
+								await upsert_job(uid, f"broadcast:{flow}", now)
+						else:
+							uid = int(target)
+							await upsert_job(uid, f"broadcast:{flow}", now)
+			
+						await bump_broadcast_next_run(b["id"])
+					except Exception:
+							continue
+			
+				await asyncio.sleep(1)
+			
+		except asyncio.CancelledError:
+			return				
+		
 
 # ─────────────────────────────────────────────────────────────
 # Handlers
