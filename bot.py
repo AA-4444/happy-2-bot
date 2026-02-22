@@ -676,9 +676,9 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 	async with _JOB_SEM:
 		try:
 			if job_key.startswith("flow:"):
-				flow = job_key.split(":", 1)[1].strip()
-				if flow and _mode(flow) == "auto":
-					await render_flow(uid, flow)
+			flow = job_key.split(":", 1)[1].strip()
+			if flow:
+				await render_flow(uid, flow)
 
 			elif job_key.startswith("action:"):
 				aid_s = job_key.split(":", 1)[1].strip()
