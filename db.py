@@ -456,9 +456,8 @@ def _compute_next_weekly(days_csv: str, at_hour: int, at_minute: int, from_ts: O
 	
 	for i in range(0, 8):
 		candidate = dt + timedelta(days=i)
-		# CRM: 0=Sun, 1=Mon ... 6=Sat
 		# Python: 0=Mon ... 6=Sun
-		py_weekday = (candidate.weekday() + 1) % 7
+		py_weekday = candidate.weekday()
 		if py_weekday in days:
 			run = datetime(
 				candidate.year,
