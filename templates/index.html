@@ -122,10 +122,13 @@
 			   data-bc-userid style="display:none" />
 
 		<div class="text-xs text-white/60">Schedule</div>
-		<select name="schedule_type" class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm" data-bc-schedule>
-		  <option value="monthly" selected>monthly</option>
-		  <option value="interval_days">every N days</option>
-		</select>
+	<select name="schedule_type"
+			class="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm"
+			data-bc-schedule>
+	  <option value="monthly" selected>monthly</option>
+	  <option value="weekly">weekly</option>
+	  <option value="interval_days">every N days</option>
+	</select>
 
 		<!-- monthly config -->
 		<input type="text" name="days_of_month" value="1"
@@ -133,6 +136,21 @@
 			   data-bc-dom
 			   title="Дни месяца: 1..31, можно через запятую (например: 1,15)"
 			   placeholder="days: 1 or 1,15" />
+			   <!-- weekly config -->
+			   <div class="flex items-center gap-2 text-xs text-white/70"
+					data-bc-dow style="display:none">
+				 <label><input type="checkbox" value="0" class="dow-cb">Mon</label>
+				 <label><input type="checkbox" value="1" class="dow-cb">Tue</label>
+				 <label><input type="checkbox" value="2" class="dow-cb">Wed</label>
+				 <label><input type="checkbox" value="3" class="dow-cb">Thu</label>
+				 <label><input type="checkbox" value="4" class="dow-cb">Fri</label>
+				 <label><input type="checkbox" value="5" class="dow-cb">Sat</label>
+				 <label><input type="checkbox" value="6" class="dow-cb">Sun</label>
+			   
+				 <input type="hidden" name="days_of_week"
+						value="0"
+						data-bc-dow-hidden>
+			   </div>
 
 		<!-- interval config -->
 		<input type="number" name="interval_days" min="1" step="1" value="30"
@@ -182,6 +200,8 @@
 				• time: <span class="text-white/70">{{ "%02d"|format(b.at_hour|int) }}:{{ "%02d"|format(b.at_minute|int) }}</span>
 				{% if st == "monthly" %}
 				  • monthly days: <span class="text-white/70">{{ b.days_of_month }}</span>
+				{% elif st == "weekly" %}
+				  • weekly days: <span class="text-white/70">{{ b.days_of_week }}</span>
 				{% else %}
 				  • every: <span class="text-white/70">{{ b.interval_days }}</span> days
 				{% endif %}
@@ -217,33 +237,52 @@
 	</div>
 
 	<script>
-	  (function(){
-		const targetSel = document.querySelector('[data-bc-target]');
-		const userIdInp = document.querySelector('[data-bc-userid]');
-		const scheduleSel = document.querySelector('[data-bc-schedule]');
-		const domInp = document.querySelector('[data-bc-dom]');
-		const intInp = document.querySelector('[data-bc-interval]');
-
-		function applyTarget(){
-		  if (!targetSel || !userIdInp) return;
-		  const v = (targetSel.value || 'all');
-		  userIdInp.style.display = (v === 'user') ? 'block' : 'none';
-		  if (v !== 'user') userIdInp.value = '';
-		}
-
-		function applySchedule(){
-		  if (!scheduleSel || !domInp || !intInp) return;
-		  const v = (scheduleSel.value || 'monthly');
-		  domInp.style.display = (v === 'monthly') ? 'block' : 'none';
-		  intInp.style.display = (v === 'interval_days') ? 'block' : 'none';
-		}
-
-		if (targetSel) targetSel.addEventListener('change', applyTarget);
-		if (scheduleSel) scheduleSel.addEventListener('change', applySchedule);
-
-		applyTarget();
-		applySchedule();
-	  })();
+	(function(){
+	
+	  const targetSel  = document.querySelector('[data-bc-target]');
+	  const userIdInp  = document.querySelector('[data-bc-userid]');
+	  const scheduleSel = document.querySelector('[data-bc-schedule]');
+	  const domInp     = document.querySelector('[data-bc-dom]');
+	  const intInp     = document.querySelector('[data-bc-interval]');
+	  const dowBlock   = document.querySelector('[data-bc-dow]');
+	  const dowHidden  = document.querySelector('[data-bc-dow-hidden]');
+	  const form       = document.querySelector('form[action="/broadcast/new"]');
+	
+	  function applyTarget(){
+		if (!targetSel || !userIdInp) return;
+		userIdInp.style.display = (targetSel.value === 'user') ? 'block' : 'none';
+		if (targetSel.value !== 'user') userIdInp.value = '';
+	  }
+	
+	  function applySchedule(){
+		if (!scheduleSel) return;
+	
+		const v = scheduleSel.value;
+	
+		if (domInp) domInp.style.display = (v === 'monthly') ? 'block' : 'none';
+		if (intInp) intInp.style.display = (v === 'interval_days') ? 'block' : 'none';
+		if (dowBlock) dowBlock.style.display = (v === 'weekly') ? 'flex' : 'none';
+	  }
+	
+	  if (targetSel) targetSel.addEventListener('change', applyTarget);
+	  if (scheduleSel) scheduleSel.addEventListener('change', applySchedule);
+	
+	  if (form) {
+		form.addEventListener('submit', function(){
+		  const selected = [];
+		  document.querySelectorAll('.dow-cb').forEach(cb=>{
+			if(cb.checked) selected.push(cb.value);
+		  });
+	
+		  if (dowHidden)
+			dowHidden.value = selected.length ? selected.join(',') : "0";
+		});
+	  }
+	
+	  applyTarget();
+	  applySchedule();
+	
+	})();
 	</script>
   </div>
 
