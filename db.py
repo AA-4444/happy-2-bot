@@ -244,9 +244,8 @@ async def init_db():
 			created_ts BIGINT NOT NULL DEFAULT 0
 		);
 		""")
-	
-		# 🔥 FIX: ensure all broadcast columns exist (old DB migration)
 		
+		# 🔥 FIX: ensure all broadcast columns exist (old DB migration)
 		broadcast_columns = {
 			"schedule_type": "TEXT NOT NULL DEFAULT 'monthly'",
 			"interval_days": "BIGINT NOT NULL DEFAULT 30",
@@ -263,6 +262,8 @@ async def init_db():
 		for col, ddl in broadcast_columns.items():
 			if not await _column_exists(conn, "broadcasts", col):
 				await conn.execute(f"ALTER TABLE broadcasts ADD COLUMN {col} {ddl};")
+	
+		
 			
 
 		# ---------------- MIGRATIONS ----------------
