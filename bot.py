@@ -806,9 +806,8 @@ async def jobs_loop():
 			
 				await asyncio.sleep(1)
 			
-		except asyncio.CancelledError:
-			return				
-		
+	except asyncio.CancelledError:
+		return
 
 # ─────────────────────────────────────────────────────────────
 # Handlers
