@@ -673,8 +673,9 @@ async def _run_broadcast_job(current_uid: int, job_key: str) -> None:
 # Jobs worker (НЕ блокируем очередь ожиданием render_flow)
 
 async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
-async with _JOB_SEM:
-	try:
+	async with _JOB_SEM:
+		try:
+	
 		if job_key.startswith("flow:"):
 			flow = job_key.split(":", 1)[1].strip()
 			if flow:
