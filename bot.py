@@ -61,7 +61,7 @@ CLUB_URL = "https://www.happi10.com/club"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ✅ какой flow считать "конец курса" (после него появятся Уроки)
-_COURSE_COMPLETE_FLOW = (os.getenv("COURSE_COMPLETE_FLOW") or "day3").strip()
+_COURSE_COMPLETE_FLOW = (os.getenv("COURSE_COMPLETE_FLOW") or "day10").strip()
 
 bot = Bot(BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
@@ -210,13 +210,17 @@ def inline_club_button() -> InlineKeyboardMarkup:
 
 
 def inline_lessons_menu() -> InlineKeyboardMarkup:
-	return InlineKeyboardMarkup(
-		inline_keyboard=[
-			[InlineKeyboardButton(text="🔵 День 1", callback_data="lesson:day1")],
-			[InlineKeyboardButton(text="🔵 День 2", callback_data="lesson:day2")],
-			[InlineKeyboardButton(text="🔵 День 3", callback_data="lesson:day3")],
-		]
-	)
+	buttons = []
+	
+	for i in range(1, 11):  # ← теперь 10 уроков
+		buttons.append([
+			InlineKeyboardButton(
+				text=f"🔵 День {i}",
+				callback_data=f"lesson:day{i}"
+			)
+		])
+	
+	return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def build_buttons_kb(buttons_json: Optional[str]) -> Optional[InlineKeyboardMarkup]:
