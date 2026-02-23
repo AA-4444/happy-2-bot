@@ -616,11 +616,16 @@
 			<a href="/flow/{{ f }}" class="btn-link" style="font-size:12px;" onclick="event.stopPropagation();"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i> open</a>
 		  </div>
 		  <div class="flow-controls">
-			<form method="POST" action="action="/flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
-			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-up"></i></button>
+			<form method="POST" action="/flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
+			  <button type="submit" class="flow-btn">
+				<i class="fa-solid fa-arrow-up"></i>
+			  </button>
 			</form>
-			<form method="POST" action="action="/flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
-			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-down"></i></button>
+			
+			<form method="POST" action="/flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
+			  <button type="submit" class="flow-btn">
+				<i class="fa-solid fa-arrow-down"></i>
+			  </button>
 			</form>
 			<form method="POST" action="/flow/{{ f }}/delete" style="display:inline" onclick="event.stopPropagation();" onsubmit="return confirm('Delete flow {{ f }}?')">
 			  <button type="submit" class="flow-btn del"><i class="fa-solid fa-trash-can"></i></button>
