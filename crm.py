@@ -30,6 +30,8 @@ from db import (
 
 	# ✅ broadcasts (new)
 	list_broadcasts, create_broadcast, delete_broadcast, set_broadcast_active,
+	
+	get_pool,
 )
 
 from seed import seed as run_seed  # ✅ автосид
@@ -199,6 +201,37 @@ async def index(request: Request):
 		broadcasts = await list_broadcasts()
 	except Exception:
 		broadcasts = []
+	
+	# ===================== FLOW FUNNEL STATS =====================
+	
+	flow_stats = []
+	
+	try:
+		pool = await get_pool()
+		async with pool.acquire() as conn:
+			rows = await conn.fetch("""
+				SELECT flow, COUNT(*) AS cnt
+				FROM user_flow_events
+				GROUP BY flow
+				ORDER BY cnt DESC;
+			""")
+	
+			total_users = await conn.fetchval("SELECT COUNT(*) FROM bot_users;")
+	
+		for r in rows:
+			cnt = int(r["cnt"] or 0)
+			percent = 0
+			if total_users and total_users > 0:
+				percent = round((cnt / total_users) * 100, 1)
+	
+			flow_stats.append({
+				"flow": r["flow"],
+				"count": cnt,
+				"percent": percent,
+			})
+	
+	except Exception:
+		pass	
 
 	for b in broadcasts:
 		# convenient derived fields for template
@@ -217,6 +250,7 @@ async def index(request: Request):
 			"triggers": triggers_map,   # triggers[flow]["mode"] уже здесь
 			"actions": actions,         # ✅ flow_actions для UI
 			"broadcasts": broadcasts,   # ✅ new recurring broadcasts
+			"flow_stats": flow_stats,
 		},
 	)
 

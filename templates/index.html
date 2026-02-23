@@ -255,6 +255,44 @@
 	  </div>
 	</div>
   </div>
+  
+  <!-- Flow Funnel -->
+  <div class="card">
+	<div class="card-head">
+	  <span class="card-head-icon"><i class="fa-solid fa-chart-line"></i></span>
+	  <div>
+		<h2>Flow funnel</h2>
+		<p>Сколько пользователей вошли в каждый flow</p>
+	  </div>
+	</div>
+  
+	<div style="overflow-x:auto;">
+	  <table class="tbl">
+		<thead>
+		  <tr>
+			<th>flow</th>
+			<th class="r">users</th>
+			<th class="r">%</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  {% if flow_stats is defined and flow_stats|length > 0 %}
+			{% for f in flow_stats %}
+			  <tr>
+				<td class="mono">{{ f.flow }}</td>
+				<td class="r">{{ f.count }}</td>
+				<td class="r">{{ f.percent }}%</td>
+			  </tr>
+			{% endfor %}
+		  {% else %}
+			<tr>
+			  <td colspan="3" class="dim">Нет данных по flow.</td>
+			</tr>
+		  {% endif %}
+		</tbody>
+	  </table>
+	</div>
+  </div>
 
   <!-- Users Table -->
   <div class="card">

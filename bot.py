@@ -41,8 +41,10 @@ from db import (
 	# for broadcasts (all users)
 	get_users,
 
-	# ✅ нужно для user-state (разблокировка уроков)
+	#  нужно для user-state (разблокировка уроков)
 	get_pool,
+	
+	log_user_flow,
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -475,7 +477,9 @@ async def render_flow(chat_id: int, flow: str):
 	flow = (flow or "").strip()
 	if not flow:
 		return
-
+	
+	await log_user_flow(chat_id, flow)
+	
 	async with _lock(chat_id):
 		blocks = await get_blocks(flow)
 

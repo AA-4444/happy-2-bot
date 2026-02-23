@@ -151,6 +151,7 @@ async def init_db():
 			gate_reminder_text TEXT DEFAULT ''
 		);
 		""")
+			
 
 		# --- JOBS ---
 		await conn.execute("""
@@ -178,6 +179,21 @@ async def init_db():
 			starts_count BIGINT NOT NULL DEFAULT 0,
 			messages_count BIGINT NOT NULL DEFAULT 0
 		);
+		""")
+		
+		# --- USER FLOW EVENTS (analytics funnel) ---
+		await conn.execute("""
+		CREATE TABLE IF NOT EXISTS user_flow_events (
+			user_id BIGINT NOT NULL,
+			flow TEXT NOT NULL,
+			entered_ts BIGINT NOT NULL,
+			PRIMARY KEY (user_id, flow)
+		);
+		""")
+		
+		await conn.execute("""
+		CREATE INDEX IF NOT EXISTS idx_user_flow_flow
+		ON user_flow_events(flow);
 		""")
 
 		# --- FLOW TRIGGERS (auto after /start) ---
@@ -1256,3 +1272,18 @@ async def swap_positions(id_a: int, id_b: int) -> None:
 				return
 			await conn.execute("UPDATE content_blocks SET position=$1 WHERE id=$2;", int(b_pos), int(id_a))
 			await conn.execute("UPDATE content_blocks SET position=$1 WHERE id=$2;", int(a_pos), int(id_b))
+			
+# ===================== FLOW ANALYTICS =====================
+			
+async def log_user_flow(user_id: int, flow: str):
+		flow = (flow or "").strip()
+		if not flow:
+			return
+			
+	 	pool = await get_pool()
+		async with pool.acquire() as conn:
+			await conn.execute("""
+			INSERT INTO user_flow_events (user_id, flow, entered_ts)
+			VALUES ($1, $2, EXTRACT(EPOCH FROM NOW())::BIGINT)
+			ON CONFLICT (user_id, flow) DO NOTHING;
+			""", int(user_id), flow)
