@@ -1,282 +1,330 @@
 {# templates/index.html #}
 {% extends "base.html" %}
 {% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
   :root {
-	--bg: #0f1318;
-	--bg-card: #151a21;
-	--bg-muted: #1a2029;
-	--bg-hover: #1e252e;
-	--border: #232b36;
-	--text: #e2e8f0;
-	--text-muted: #6b7a8d;
-	--primary: #2dd4a8;
-	--primary-dim: rgba(45,212,168,0.12);
-	--success: #34d399;
-	--success-dim: rgba(52,211,153,0.15);
-	--warning: #f59e0b;
-	--warning-dim: rgba(245,158,11,0.15);
-	--info: #3b82f6;
-	--info-dim: rgba(59,130,246,0.15);
-	--danger: #ef4444;
-	--danger-dim: rgba(239,68,68,0.12);
+	--bg: #f5f6f8;
+	--bg-card: #ffffff;
+	--bg-muted: #f0f1f4;
+	--bg-hover: #f7f8fa;
+	--border: #e2e4ea;
+	--text: #1a1d24;
+	--text-sec: #5f6672;
+	--text-muted: #8b919d;
+	--primary: #2563eb;
+	--primary-hover: #1d4ed8;
+	--primary-dim: rgba(37,99,235,0.08);
+	--green: #16a34a;
+	--green-dim: rgba(22,163,74,0.1);
+	--green-border: #bbf7d0;
+	--orange: #ea580c;
+	--orange-dim: rgba(234,88,12,0.1);
+	--red: #dc2626;
+	--red-dim: rgba(220,38,38,0.08);
+	--red-border: #fecaca;
+	--blue: #2563eb;
+	--blue-dim: rgba(37,99,235,0.08);
+	--purple: #7c3aed;
+	--purple-dim: rgba(124,58,237,0.08);
 	--radius: 8px;
+	--shadow: 0 1px 3px rgba(0,0,0,0.06);
+	--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+	--mono: 'JetBrains Mono', monospace;
   }
+
+  @media (prefers-color-scheme: dark) {
+	:root {
+	  --bg: #0f1117;
+	  --bg-card: #1a1d27;
+	  --bg-muted: #1f2230;
+	  --bg-hover: #22252f;
+	  --border: #2d3140;
+	  --text: #e4e6eb;
+	  --text-sec: #9ca3af;
+	  --text-muted: #6b7280;
+	  --primary: #3b82f6;
+	  --primary-hover: #2563eb;
+	  --primary-dim: rgba(59,130,246,0.12);
+	  --green-dim: rgba(22,163,74,0.15);
+	  --green-border: #166534;
+	  --orange-dim: rgba(234,88,12,0.15);
+	  --red-dim: rgba(220,38,38,0.15);
+	  --red-border: #991b1b;
+	  --blue-dim: rgba(59,130,246,0.12);
+	  --purple-dim: rgba(124,58,237,0.12);
+	  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+	}
+  }
+
   * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-	font-family: 'Inter', system-ui, sans-serif;
-	background: var(--bg);
-	color: var(--text);
-	-webkit-font-smoothing: antialiased;
-	line-height: 1.5;
-  }
-  code, .mono { font-family: 'JetBrains Mono', monospace; }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; line-height:1.5; }
+  code, .mono { font-family:var(--mono); }
   ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius:3px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
   .crm-wrap { max-width:1200px; margin:0 auto; padding:24px 16px; }
+
   /* Header */
   .crm-header {
 	display:flex; align-items:center; gap:12px;
 	padding:16px 20px; background:var(--bg-card);
 	border:1px solid var(--border); border-radius:var(--radius);
-	margin-bottom:24px;
+	margin-bottom:24px; box-shadow:var(--shadow);
   }
   .crm-header-icon {
 	width:40px; height:40px; border-radius:var(--radius);
 	background:var(--primary-dim); display:flex; align-items:center; justify-content:center;
-	color:var(--primary); font-size:20px;
+	color:var(--primary); font-size:18px;
   }
   .crm-header h1 { font-size:18px; font-weight:600; }
   .crm-header p { font-size:12px; color:var(--text-muted); }
+
   /* Stats */
   .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
   @media(max-width:768px){ .stats-grid { grid-template-columns:repeat(2,1fr); } }
   .stat-card {
 	background:var(--bg-card); border:1px solid var(--border);
 	border-radius:var(--radius); padding:20px; display:flex; align-items:center; gap:14px;
-	transition:border-color .2s;
+	box-shadow:var(--shadow); transition:border-color .2s;
   }
-  .stat-card:hover { border-color:rgba(45,212,168,0.3); }
+  .stat-card:hover { border-color:var(--primary); }
   .stat-icon {
 	width:40px; height:40px; border-radius:var(--radius);
-	display:flex; align-items:center; justify-content:center; font-size:18px;
+	display:flex; align-items:center; justify-content:center; font-size:16px;
   }
   .stat-icon.users { background:var(--primary-dim); color:var(--primary); }
-  .stat-icon.active { background:var(--success-dim); color:var(--success); }
-  .stat-icon.starts { background:var(--info-dim); color:var(--info); }
-  .stat-icon.msgs { background:var(--warning-dim); color:var(--warning); }
-  .stat-label { font-size:13px; color:var(--text-muted); }
-  .stat-value { font-size:24px; font-weight:600; }
+  .stat-icon.active { background:var(--green-dim); color:var(--green); }
+  .stat-icon.starts { background:var(--blue-dim); color:var(--blue); }
+  .stat-icon.msgs { background:var(--orange-dim); color:var(--orange); }
+  .stat-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:500; }
+  .stat-value { font-size:24px; font-weight:700; font-family:var(--mono); }
+
   /* Card */
   .card {
 	background:var(--bg-card); border:1px solid var(--border);
 	border-radius:var(--radius); overflow:hidden; margin-bottom:24px;
+	box-shadow:var(--shadow);
   }
   .card-head {
 	padding:20px; border-bottom:1px solid var(--border);
 	display:flex; align-items:flex-start; gap:10px;
   }
-  .card-head-icon { font-size:18px; margin-top:2px; }
+  .card-head-icon { font-size:16px; margin-top:3px; color:var(--primary); }
   .card-head h2 { font-size:16px; font-weight:600; }
-  .card-head p, .card-hint { font-size:13px; color:var(--text-muted); }
-  .card-hint { padding:12px 20px; background:var(--bg-muted); border-bottom:1px solid var(--border); font-size:12px; }
+  .card-head p { font-size:13px; color:var(--text-sec); }
+  .card-hint { padding:10px 20px; background:var(--bg-muted); border-bottom:1px solid var(--border); font-size:12px; color:var(--text-muted); }
+
   /* Table */
   .tbl { width:100%; border-collapse:collapse; font-size:13px; }
   .tbl th {
-	text-align:left; padding:10px 20px; font-weight:500;
-	color:var(--text-muted); background:rgba(26,32,41,0.5);
-	border-bottom:1px solid var(--border); font-size:12px;
+	text-align:left; padding:10px 20px; font-weight:600; font-size:11px;
+	color:var(--text-muted); background:var(--bg-muted);
+	border-bottom:1px solid var(--border); text-transform:uppercase; letter-spacing:0.04em;
   }
-  .tbl th.r { text-align:right; }
-  .tbl td { padding:10px 20px; border-bottom:1px solid rgba(35,43,54,0.5); }
+  .tbl th.r, .tbl td.r { text-align:right; }
+  .tbl td { padding:10px 20px; border-bottom:1px solid var(--border); }
+  .tbl tr:last-child td { border-bottom:none; }
   .tbl tr:hover td { background:var(--bg-hover); }
-  .tbl td.r { text-align:right; }
   .tbl .mono { font-size:12px; }
   .tbl .link { color:var(--primary); text-decoration:none; }
   .tbl .dim { color:var(--text-muted); }
-  /* Toolbar row above table */
+
+  /* Toolbar */
   .toolbar {
 	display:flex; align-items:center; justify-content:space-between;
 	padding:16px 20px; border-bottom:1px solid var(--border);
   }
   .toolbar-left { display:flex; align-items:center; gap:10px; }
+  .toolbar-left h2 { font-size:16px; font-weight:600; }
   .badge {
-	font-size:11px; font-family:'JetBrains Mono',monospace;
+	font-size:11px; font-family:var(--mono);
 	background:var(--bg-muted); color:var(--text-muted);
 	padding:2px 8px; border-radius:4px;
   }
-  .btn-link {
-	display:inline-flex; align-items:center; gap:6px;
-	font-size:13px; color:var(--primary); background:none; border:none;
-	cursor:pointer; text-decoration:none; transition:opacity .2s;
-  }
-  .btn-link:hover { opacity:0.8; }
-  /* Form elements */
+
+  /* Form */
   .form-row {
-	display:flex; flex-wrap:wrap; gap:12px; padding:20px;
-	background:rgba(26,32,41,0.3); border-bottom:1px solid var(--border);
+	display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; padding:20px;
+	background:var(--bg-muted); border-bottom:1px solid var(--border);
   }
-  .form-group { display:flex; flex-direction:column; gap:4px; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
   .form-group.grow { flex:1; min-width:160px; }
-  .form-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-  input[type="text"], input[type="number"], select, textarea {
-	background:var(--bg); border:1px solid var(--border); border-radius:6px;
-	padding:8px 12px; font-size:13px; color:var(--text);
-	font-family:'Inter',sans-serif; outline:none; transition:border-color .2s;
+  .form-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; }
+
+  input[type="text"], input[type="number"], select {
+	height:36px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+	padding:0 10px; font-size:13px; color:var(--text);
+	font-family:var(--font); outline:none; transition:border-color .15s;
   }
-  input:focus, select:focus { border-color:var(--primary); }
+  input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 0 2px rgba(37,99,235,0.12); }
   input::placeholder { color:var(--text-muted); }
-  select { cursor:pointer; appearance:auto; }
+  select { cursor:pointer; }
+
   /* Buttons */
   .btn {
 	display:inline-flex; align-items:center; gap:6px;
-	padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500;
-	border:none; cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif;
+	height:36px; padding:0 14px; border-radius:6px; font-size:13px; font-weight:500;
+	border:none; cursor:pointer; transition:all .15s; font-family:var(--font);
+	white-space:nowrap;
   }
-  .btn-primary { background:var(--primary); color:#0f1318; }
-  .btn-primary:hover { opacity:0.9; }
-  .btn-secondary { background:var(--bg-muted); color:var(--text-muted); border:1px solid var(--border); }
-  .btn-secondary:hover { background:var(--bg-hover); color:var(--text); }
-  .btn-sm { padding:5px 12px; font-size:12px; }
-  .btn-danger { background:var(--danger-dim); color:var(--danger); }
-  .btn-danger:hover { background:rgba(239,68,68,0.2); }
-  /* Pill badges */
+  .btn i { font-size:12px; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-hover); }
+  .btn-sm { height:30px; padding:0 10px; font-size:12px; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-sec); }
+  .btn-outline:hover { background:var(--bg-hover); border-color:var(--text-muted); }
+  .btn-danger { background:var(--red-dim); color:var(--red); border:1px solid var(--red-border); }
+  .btn-danger:hover { opacity:0.85; }
+  .btn-ghost { background:none; border:none; color:var(--text-muted); padding:0 6px; height:30px; cursor:pointer; border-radius:4px; display:inline-flex; align-items:center; }
+  .btn-ghost:hover { background:var(--bg-muted); color:var(--text); }
+  .btn-link {
+	display:inline-flex; align-items:center; gap:6px;
+	font-size:13px; color:var(--primary); background:none; border:none;
+	cursor:pointer; text-decoration:none;
+  }
+  .btn-link:hover { opacity:0.8; }
+
+  /* Pill */
   .pill {
-	display:inline-block; font-size:11px; font-weight:600;
-	padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:0.3px;
+	display:inline-flex; align-items:center; font-size:11px; font-weight:600;
+	padding:3px 10px; border-radius:999px; letter-spacing:0.02em; text-transform:uppercase;
   }
-  .pill-on { background:var(--success-dim); color:var(--success); }
-  .pill-off { background:var(--bg-muted); color:var(--text-muted); }
-  .pill-auto { background:var(--success-dim); color:var(--success); }
-  .pill-manual { background:var(--warning-dim); color:var(--warning); }
+  .pill-on { background:var(--green-dim); color:var(--green); border:1px solid var(--green-border); }
+  .pill-off { background:var(--bg-muted); color:var(--text-muted); border:1px solid var(--border); }
+  .pill-auto { background:var(--green-dim); color:var(--green); }
+  .pill-manual { background:var(--orange-dim); color:var(--orange); }
+
   /* Item rows */
   .item-row {
 	display:flex; align-items:center; justify-content:space-between;
-	padding:14px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
-	transition:background .15s;
+	padding:14px 20px; border-bottom:1px solid var(--border); transition:background .1s;
   }
-  .item-row:hover { background:var(--bg-hover); }
   .item-row:last-child { border-bottom:none; }
+  .item-row:hover { background:var(--bg-hover); }
   .item-left { flex:1; min-width:0; }
   .item-title { font-size:14px; font-weight:500; }
-  .item-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
-  .item-meta .mono { color:rgba(45,212,168,0.8); }
+  .item-meta { font-size:12px; color:var(--text-sec); margin-top:2px; }
+  .item-meta .mono { color:var(--primary); }
   .item-actions { display:flex; align-items:center; gap:8px; margin-left:12px; }
-  /* Flow card */
-  .flow-header {
-	display:flex; align-items:center; justify-content:space-between;
-	padding:12px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
-	transition:background .15s; cursor:pointer;
-  }
-  .flow-header:hover { background:var(--bg-hover); }
-  .flow-name { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:500; }
-  .flow-controls { display:flex; align-items:center; gap:4px; }
-  .flow-btn {
-	width:28px; height:28px; display:flex; align-items:center; justify-content:center;
-	border:none; background:none; color:var(--text-muted); cursor:pointer;
-	border-radius:4px; transition:all .15s; font-size:14px;
-  }
-  .flow-btn:hover { background:var(--bg-muted); color:var(--text); }
-  .flow-btn:disabled { opacity:0.3; cursor:default; }
-  .flow-btn.del:hover { background:var(--danger-dim); color:var(--danger); }
-  .flow-detail {
-	padding:16px 20px; background:rgba(26,32,41,0.3);
-	border-bottom:1px solid var(--border);
-  }
-  .flow-detail-inner {
-	background:var(--bg-muted); border:1px solid var(--border);
-	border-radius:var(--radius); padding:16px;
-  }
-  .flow-detail h4 { font-size:13px; font-weight:600; margin-bottom:10px; }
-  .flow-detail .row { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
-  /* Weekday buttons */
-  .weekday-btn {
-	padding:4px 10px; font-size:11px; border-radius:4px;
-	border:1px solid var(--border); background:var(--bg);
-	color:var(--text-muted); cursor:pointer; transition:all .15s;
-  }
-  .weekday-btn.active, .weekday-btn:checked {
-	background:var(--primary); color:#0f1318; border-color:var(--primary);
-  }
-  /* Checkbox style */
-  input[type="checkbox"] {
-	accent-color: var(--primary); width:16px; height:16px; cursor:pointer;
-  }
-  .check-label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); cursor:pointer; }
+
   /* Sequence row */
   .seq-row {
 	display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
-	padding:14px 20px; border-bottom:1px solid rgba(35,43,54,0.5);
-	transition:background .15s;
+	padding:14px 20px; border-bottom:1px solid var(--border); transition:background .1s;
   }
   .seq-row:hover { background:var(--bg-hover); }
   .seq-left { display:flex; align-items:center; gap:10px; }
   .seq-right { display:flex; align-items:center; gap:8px; }
-  /* Chain arrow */
-  .chain-arrow { color:var(--text-muted); font-size:16px; margin:0 4px; }
-  /* Empty state */
-  .empty { padding:20px; font-size:13px; color:var(--text-muted); }
-  /* Time inputs */
+
+  /* Flow card */
+  .flow-header {
+	display:flex; align-items:center; justify-content:space-between;
+	padding:12px 20px; border-bottom:1px solid var(--border);
+	transition:background .1s; cursor:pointer;
+  }
+  .flow-header:hover { background:var(--bg-hover); }
+  .flow-name { font-family:var(--mono); font-size:13px; font-weight:500; }
+  .flow-controls { display:flex; align-items:center; gap:4px; }
+  .flow-btn {
+	width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+	border:none; background:none; color:var(--text-muted); cursor:pointer;
+	border-radius:4px; transition:all .15s; font-size:13px;
+  }
+  .flow-btn:hover { background:var(--bg-muted); color:var(--text); }
+  .flow-btn.del:hover { background:var(--red-dim); color:var(--red); }
+  .flow-detail { padding:16px 20px; background:var(--bg-muted); border-bottom:1px solid var(--border); }
+  .flow-detail-inner { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  .flow-detail h4 { font-size:13px; font-weight:600; margin-bottom:10px; }
+
+  /* Checkbox */
+  input[type="checkbox"] { accent-color:var(--primary); width:15px; height:15px; cursor:pointer; }
+  .check-label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sec); cursor:pointer; }
+
+  /* Weekday buttons */
+  .weekday-btn {
+	padding:4px 10px; font-size:11px; border-radius:4px;
+	border:1px solid var(--border); background:var(--bg-card);
+	color:var(--text-muted); cursor:pointer; transition:all .15s;
+  }
+  .weekday-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+  /* Time group */
   .time-group { display:flex; align-items:center; gap:4px; }
   .time-input { width:56px; text-align:center; }
   .time-sep { font-weight:700; color:var(--text-muted); font-size:16px; }
-  /* Inline flex row */
+
+  /* Inline helpers */
   .inline { display:flex; align-items:center; gap:8px; }
   .gap-sm { gap:6px; }
-  .ml-auto { margin-left:auto; }
-  .mt-sm { margin-top:8px; }
-  .mb-sm { margin-bottom:8px; }
+  .chain-arrow { color:var(--text-muted); font-size:14px; margin:0 2px; }
+  .empty { padding:24px 20px; font-size:13px; color:var(--text-muted); text-align:center; }
+
+  @media(max-width:768px){
+	.form-row { flex-direction:column; align-items:stretch; }
+	.form-group { width:100%; }
+	.form-group input, .form-group select { width:100% !important; }
+	.seq-row { flex-direction:column; align-items:flex-start; }
+	.item-row { flex-direction:column; align-items:flex-start; gap:8px; }
+	.item-actions { margin-left:0; }
+  }
 </style>
+
 <div class="crm-wrap">
+
   <!-- Header -->
   <div class="crm-header">
-	<div class="crm-header-icon">🤖</div>
+	<div class="crm-header-icon"><i class="fa-solid fa-robot"></i></div>
 	<div>
 	  <h1>Bot CRM</h1>
 	  <p>Dashboard & Flow Manager</p>
 	</div>
   </div>
+
   <!-- Stats -->
   <div class="stats-grid">
 	<div class="stat-card">
-	  <div class="stat-icon users">👥</div>
+	  <div class="stat-icon users"><i class="fa-solid fa-users"></i></div>
 	  <div>
 		<div class="stat-label">Users</div>
-		<div class="stat-value">{{ stats.total_users if stats is defined else "—" }}</div>
+		<div class="stat-value">{{ stats.total_users if stats is defined else "-" }}</div>
 	  </div>
 	</div>
 	<div class="stat-card">
-	  <div class="stat-icon active">⚡</div>
+	  <div class="stat-icon active"><i class="fa-solid fa-signal"></i></div>
 	  <div>
 		<div class="stat-label">Active (1h)</div>
-		<div class="stat-value">{{ stats.active_last_hour if stats is defined else "—" }}</div>
+		<div class="stat-value">{{ stats.active_last_hour if stats is defined else "-" }}</div>
 	  </div>
 	</div>
 	<div class="stat-card">
-	  <div class="stat-icon starts">▶</div>
+	  <div class="stat-icon starts"><i class="fa-solid fa-play"></i></div>
 	  <div>
 		<div class="stat-label">/start</div>
-		<div class="stat-value">{{ stats.total_starts if stats is defined else "—" }}</div>
+		<div class="stat-value">{{ stats.total_starts if stats is defined else "-" }}</div>
 	  </div>
 	</div>
 	<div class="stat-card">
-	  <div class="stat-icon msgs">💬</div>
+	  <div class="stat-icon msgs"><i class="fa-solid fa-comment-dots"></i></div>
 	  <div>
 		<div class="stat-label">Messages</div>
-		<div class="stat-value">{{ stats.total_messages if stats is defined else "—" }}</div>
+		<div class="stat-value">{{ stats.total_messages if stats is defined else "-" }}</div>
 	  </div>
 	</div>
   </div>
+
   <!-- Users Table -->
   <div class="card">
 	<div class="toolbar">
 	  <div class="toolbar-left">
-		<h2 style="font-size:16px;font-weight:600;">Latest users</h2>
+		<h2><i class="fa-solid fa-user-group" style="font-size:14px;color:var(--primary);margin-right:6px"></i>Latest users</h2>
 		<span class="badge">{{ stats.total_users if stats is defined else "" }}</span>
 	  </div>
-	  <a href="/export_users" class="btn-link">⬇️ Export Excel</a>
+	  <a href="/export_users" class="btn-link"><i class="fa-solid fa-file-export"></i> Export Excel</a>
 	</div>
 	<div style="overflow-x:auto;">
 	  <table class="tbl">
@@ -315,17 +363,19 @@
 	  </table>
 	</div>
   </div>
+
   <!-- Broadcasts -->
   <div class="card">
 	<div class="card-head">
-	  <span class="card-head-icon">📡</span>
+	  <span class="card-head-icon"><i class="fa-solid fa-tower-broadcast"></i></span>
 	  <div>
 		<h2>Broadcasts (recurring)</h2>
 		<p>Авто-рассылки: запуск flow по расписанию для всех или конкретного user_id.</p>
 	  </div>
 	</div>
+
 	<form method="POST" action="/add_broadcast">
-	  <div class="form-row" style="flex-wrap:wrap; gap:12px;">
+	  <div class="form-row">
 		<div class="form-group grow">
 		  <span class="form-label">Title</span>
 		  <input type="text" name="title" placeholder="Broadcast title">
@@ -340,14 +390,14 @@
 		</div>
 		<div class="form-group">
 		  <span class="form-label">Target</span>
-		  <select name="target_type" id="bc_target_type" onchange="document.getElementById('bc_uid').style.display=this.value==='single'?'block':'none'">
+		  <select name="target_type" id="bc_target_type" onchange="document.getElementById('bc_uid').style.display=this.value==='single'?'flex':'none'">
 			<option value="all">all users</option>
 			<option value="single">single user_id</option>
 		  </select>
 		</div>
 		<div class="form-group" id="bc_uid" style="display:none">
 		  <span class="form-label">User ID</span>
-		  <input type="number" name="target_user_id" placeholder="user_id">
+		  <input type="number" name="target_user_id" placeholder="user_id" style="width:100px">
 		</div>
 		<div class="form-group">
 		  <span class="form-label">Schedule</span>
@@ -363,11 +413,11 @@
 		</div>
 		<div class="form-group" id="bc_monthly">
 		  <span class="form-label">Days of month</span>
-		  <input type="text" name="days_of_month" placeholder="1,15" value="1,15">
+		  <input type="text" name="days_of_month" placeholder="1,15" value="1,15" style="width:100px">
 		</div>
 		<div class="form-group" id="bc_weekly" style="display:none">
 		  <span class="form-label">Days of week</span>
-		  <div class="inline gap-sm" style="flex-wrap:wrap;">
+		  <div class="inline gap-sm" style="flex-wrap:wrap;height:36px;align-items:center;">
 			{% for d in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
 			  <label class="weekday-btn"><input type="checkbox" name="days_of_week" value="{{ d }}" style="display:none" onchange="this.parentElement.classList.toggle('active')"> {{ d }}</label>
 			{% endfor %}
@@ -385,18 +435,24 @@
 			<input type="number" name="at_minute" value="00" min="0" max="59" class="time-input">
 		  </div>
 		</div>
-		<div class="form-group" style="justify-content:flex-end;">
-		  <label class="check-label">
+		<div class="form-group">
+		  <span class="form-label">&nbsp;</span>
+		  <label class="check-label" style="height:36px;">
 			<input type="checkbox" name="is_active" value="1" checked>
 			enabled
 		  </label>
 		</div>
-	  </div>
-	  <div style="padding:12px 20px; border-bottom:1px solid var(--border); background:rgba(26,32,41,0.3);">
-		<button type="submit" class="btn btn-primary">+ Add broadcast</button>
-		<p class="card-hint" style="padding:8px 0 0; border:none; background:none;">monthly: days 1,15 = 1 и 15 числа. every N days: запустит для всех пользователей каждые N дней.</p>
+		<div class="form-group">
+		  <span class="form-label">&nbsp;</span>
+		  <button type="submit" class="btn btn-primary">
+			<i class="fa-solid fa-plus"></i> Add broadcast
+		  </button>
+		</div>
 	  </div>
 	</form>
+
+	<div class="card-hint">monthly: days 1,15 = 1 и 15 числа. every N days: запустит для всех пользователей каждые N дней.</div>
+
 	<div>
 	  {% if broadcasts is defined and broadcasts|length > 0 %}
 		{% for b in broadcasts %}
@@ -408,14 +464,14 @@
 			  <div class="item-title">{{ b.title if b.title is defined and b.title else ("Broadcast: " ~ b.flow) }}</div>
 			  <div class="item-meta">
 				flow: <span class="mono">{{ b.flow }}</span>
-				• target: {{ target }}
-				• time: {{ "%02d"|format(b.at_hour|int) }}:{{ "%02d"|format(b.at_minute|int) }}
+				&bull; target: {{ target }}
+				&bull; time: {{ "%02d"|format(b.at_hour|int) }}:{{ "%02d"|format(b.at_minute|int) }}
 				{% if st == "monthly" %}
-				  • monthly days: {{ b.days_of_month }}
+				  &bull; monthly days: {{ b.days_of_month }}
 				{% elif st == "weekly" %}
-				  • weekly days: {{ b.days_of_week }}
+				  &bull; weekly days: {{ b.days_of_week }}
 				{% else %}
-				  • every: {{ b.interval_days }} days
+				  &bull; every: {{ b.interval_days }} days
 				{% endif %}
 			  </div>
 			</div>
@@ -426,7 +482,7 @@
 				</button>
 			  </form>
 			  <form method="POST" action="/delete_broadcast/{{ b.id }}" style="display:inline" onsubmit="return confirm('Delete this broadcast?')">
-				<button type="submit" class="btn btn-sm btn-danger">Delete</button>
+				<button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Delete</button>
 			  </form>
 			</div>
 		  </div>
@@ -436,16 +492,18 @@
 	  {% endif %}
 	</div>
   </div>
+
   <!-- /start Sequence -->
   <div class="card">
 	<div class="card-head">
-	  <span class="card-head-icon">⚡</span>
+	  <span class="card-head-icon"><i class="fa-solid fa-bolt"></i></span>
 	  <div>
 		<h2>/start sequence</h2>
 		<p>Какие flow запускаются после /start (delay относительно /start)</p>
 	  </div>
 	</div>
 	<div class="card-hint">пример: welcome=0 min, day1=5 min, day2=1 day</div>
+
 	{% for f in flows %}
 	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
 	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
@@ -467,21 +525,23 @@
 			  <option value="hours" {% if unit == "hours" %}selected{% endif %}>hours</option>
 			  <option value="days" {% if unit == "days" %}selected{% endif %}>days</option>
 			</select>
-			<button type="submit" class="btn btn-sm btn-primary">Save</button>
+			<button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
 		  </div>
 		</div>
 	  </form>
 	{% endfor %}
   </div>
+
   <!-- After Flow → Start Flow -->
   <div class="card">
 	<div class="card-head">
-	  <span class="card-head-icon">🔀</span>
+	  <span class="card-head-icon"><i class="fa-solid fa-code-branch"></i></span>
 	  <div>
 		<h2>After flow → start flow</h2>
 		<p>Правила: после завершения flow A запустить flow B через задержку (welcome → day1 и т.д.)</p>
 	  </div>
 	</div>
+
 	<form method="POST" action="/add_action">
 	  <div class="form-row">
 		<div class="form-group">
@@ -491,13 +551,13 @@
 		  </select>
 		</div>
 		<div class="form-group">
-		  <span class="form-label">start</span>
+		  <span class="form-label">Start</span>
 		  <select name="target_flow">
 			{% for f in flows %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
 		  </select>
 		</div>
 		<div class="form-group">
-		  <span class="form-label">after</span>
+		  <span class="form-label">After</span>
 		  <div class="inline">
 			<input type="number" name="delay_value" value="5" style="width:70px">
 			<select name="delay_unit">
@@ -508,12 +568,14 @@
 			</select>
 		  </div>
 		</div>
-		<div class="form-group" style="justify-content:flex-end;">
-		  <button type="submit" class="btn btn-primary">+ Add rule</button>
+		<div class="form-group">
+		  <span class="form-label">&nbsp;</span>
+		  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add rule</button>
 		</div>
 	  </div>
-	  <div class="card-hint">пример: After welcome start day1 after 5 minutes</div>
 	</form>
+	<div class="card-hint">пример: After welcome start day1 after 5 minutes</div>
+
 	<div>
 	  {% if actions is defined and actions|length > 0 %}
 		{% for a in actions %}
@@ -521,7 +583,7 @@
 		  <div class="item-row">
 			<div class="inline" style="gap:10px;">
 			  <span class="badge" style="font-size:13px;font-weight:500;">{{ a.after_flow }}</span>
-			  <span class="chain-arrow">→</span>
+			  <i class="fa-solid fa-arrow-right chain-arrow"></i>
 			  <span class="badge" style="font-size:13px;font-weight:500;">{{ a.target_flow }}</span>
 			  <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">delay: {{ a.delay_seconds }}s</span>
 			</div>
@@ -532,7 +594,7 @@
 				</button>
 			  </form>
 			  <form method="POST" action="/delete_action/{{ a.id }}" style="display:inline" onsubmit="return confirm('Delete this rule?')">
-				<button type="submit" class="btn btn-sm btn-danger">Delete</button>
+				<button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Delete</button>
 			  </form>
 			</div>
 		  </div>
@@ -542,27 +604,31 @@
 	  {% endif %}
 	</div>
   </div>
+
   <!-- Flows -->
   <div class="card">
 	<div class="card-head">
-	  <span class="card-head-icon">📦</span>
+	  <span class="card-head-icon"><i class="fa-solid fa-layer-group"></i></span>
 	  <div>
 		<h2>Flows</h2>
 		<p>Порядок flow меняется ↑/↓. Удаление — безопасно (сотрёт блоки).</p>
 	  </div>
 	</div>
+
 	<form method="POST" action="/add_flow" class="form-row">
 	  <div class="form-group grow">
 		<input type="text" name="flow_name" placeholder="New flow name">
 	  </div>
-	  <div class="form-group" style="justify-content:flex-end;">
-		<button type="submit" class="btn btn-primary">+ New flow</button>
+	  <div class="form-group">
+		<button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New flow</button>
 	  </div>
 	</form>
+
 	{% for f in flows %}
 	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
 	  {% set mode = (tr.mode if tr and tr.mode is defined else "off") %}
 	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
+
 	  <div>
 		<div class="flow-header" onclick="var d=document.getElementById('flow-detail-{{ loop.index }}');d.style.display=d.style.display==='none'?'block':'none';">
 		  <div class="inline" style="gap:10px;">
@@ -570,38 +636,39 @@
 			<span class="pill {% if mode == 'auto' %}pill-auto{% elif mode == 'manual' %}pill-manual{% else %}pill-off{% endif %}">
 			  {{ mode|upper }}
 			</span>
-			<a href="/flow/{{ f }}" class="btn-link" style="font-size:12px;" onclick="event.stopPropagation();">open →</a>
+			<a href="/flow/{{ f }}" class="btn-link" style="font-size:12px;" onclick="event.stopPropagation();"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i> open</a>
 		  </div>
 		  <div class="flow-controls">
 			<form method="POST" action="/move_flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
-			  <button type="submit" class="flow-btn">↑</button>
+			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-up"></i></button>
 			</form>
 			<form method="POST" action="/move_flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
-			  <button type="submit" class="flow-btn">↓</button>
+			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-down"></i></button>
 			</form>
 			<form method="POST" action="/delete_flow/{{ f }}" style="display:inline" onclick="event.stopPropagation();" onsubmit="return confirm('Delete flow {{ f }}?')">
-			  <button type="submit" class="flow-btn del">🗑</button>
+			  <button type="submit" class="flow-btn del"><i class="fa-solid fa-trash-can"></i></button>
 			</form>
 		  </div>
 		</div>
+
 		<div id="flow-detail-{{ loop.index }}" class="flow-detail" style="display:none;">
 		  <div class="flow-detail-inner">
 			<h4>Delivery mode</h4>
 			<form method="POST" action="/save_flow_mode/{{ f }}">
-			  <div class="row" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+			  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
 				<span style="font-size:12px;color:var(--text-muted);">Mode</span>
 				<select name="mode">
 				  <option value="off" {% if mode == "off" %}selected{% endif %}>off</option>
 				  <option value="manual" {% if mode == "manual" %}selected{% endif %}>manual</option>
 				  <option value="auto" {% if mode == "auto" %}selected{% endif %}>auto</option>
 				</select>
-				<button type="submit" class="btn btn-sm btn-primary">Save</button>
+				<button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
 			  </div>
 			</form>
 			<form method="POST" action="/save_flow_auto/{{ f }}">
 			  <div style="border-top:1px solid var(--border);padding-top:12px;">
 				<h4>Auto-send after /start</h4>
-				<div class="row" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+				<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
 				  <input type="number" name="offset_value" value="{{ tr.offset_value if tr else 0 }}" style="width:70px;text-align:center;">
 				  {% set unit2 = (tr.offset_unit if tr and tr.offset_unit is defined else "days") %}
 				  <select name="offset_unit">
@@ -613,7 +680,7 @@
 					<input type="checkbox" name="enabled" value="1" {% if enabled %}checked{% endif %}>
 					enabled
 				  </label>
-				  <button type="submit" class="btn btn-sm btn-primary">Save</button>
+				  <button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
 				</div>
 				<p style="font-size:11px;color:var(--text-muted);margin-top:8px;">Пример: day2 → 1 days, day3 → 2 days.</p>
 			  </div>
@@ -622,9 +689,11 @@
 		</div>
 	  </div>
 	{% endfor %}
+
 	{% if flows|length == 0 %}
 	  <div class="empty">Нет flows. Запусти seed.py.</div>
 	{% endif %}
   </div>
+
 </div>
 {% endblock %}
