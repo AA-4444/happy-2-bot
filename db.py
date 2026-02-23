@@ -1275,15 +1275,17 @@ async def swap_positions(id_a: int, id_b: int) -> None:
 			
 # ===================== FLOW ANALYTICS =====================
 			
+# ===================== FLOW ANALYTICS =====================
+
 async def log_user_flow(user_id: int, flow: str):
-		flow = (flow or "").strip()
-		if not flow:
-			return
-			
-	 	pool = await get_pool()
-		async with pool.acquire() as conn:
-			await conn.execute("""
+	flow = (flow or "").strip()
+	if not flow:
+		return
+
+	pool = await get_pool()
+	async with pool.acquire() as conn:
+		await conn.execute("""
 			INSERT INTO user_flow_events (user_id, flow, entered_ts)
 			VALUES ($1, $2, EXTRACT(EPOCH FROM NOW())::BIGINT)
 			ON CONFLICT (user_id, flow) DO NOTHING;
-			""", int(user_id), flow)
+		""", int(user_id), flow)
