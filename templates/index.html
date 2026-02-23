@@ -570,7 +570,7 @@
 				  {% if a_active|int == 1 %}ENABLED{% else %}DISABLED{% endif %}
 				</button>
 			  </form>
-			  <form method="POST" action="/delete_action/{{ a.id }}" style="display:inline" onsubmit="return confirm('Delete this rule?')">
+			  <form method="POST" action="/flow/action/{{ a.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this rule?')">
 				<button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Delete</button>
 			  </form>
 			</div>
@@ -592,9 +592,9 @@
 	  </div>
 	</div>
 
-	<form method="POST" action="/add_flow" class="form-row">
+	<form method="POST" action="/flow/new" class="form-row">
 	  <div class="form-group grow">
-		<input type="text" name="flow_name" placeholder="New flow name">
+		<input type="text" name="name" placeholder="New flow name">
 	  </div>
 	  <div class="form-group">
 		<button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New flow</button>
@@ -616,13 +616,13 @@
 			<a href="/flow/{{ f }}" class="btn-link" style="font-size:12px;" onclick="event.stopPropagation();"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px"></i> open</a>
 		  </div>
 		  <div class="flow-controls">
-			<form method="POST" action="/move_flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
+			<form method="POST" action="action="/flow/{{ f }}/up" style="display:inline" onclick="event.stopPropagation();">
 			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-up"></i></button>
 			</form>
-			<form method="POST" action="/move_flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
+			<form method="POST" action="action="/flow/{{ f }}/down" style="display:inline" onclick="event.stopPropagation();">
 			  <button type="submit" class="flow-btn"><i class="fa-solid fa-arrow-down"></i></button>
 			</form>
-			<form method="POST" action="/delete_flow/{{ f }}" style="display:inline" onclick="event.stopPropagation();" onsubmit="return confirm('Delete flow {{ f }}?')">
+			<form method="POST" action="/flow/{{ f }}/delete" style="display:inline" onclick="event.stopPropagation();" onsubmit="return confirm('Delete flow {{ f }}?')">
 			  <button type="submit" class="flow-btn del"><i class="fa-solid fa-trash-can"></i></button>
 			</form>
 		  </div>
