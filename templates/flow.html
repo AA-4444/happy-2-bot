@@ -1,128 +1,154 @@
 {% extends "base.html" %}
+
 {% block content %}
+<style>
+  .flow-wrap .back-link { font-size:12px; color:var(--muted); text-decoration:none; transition:color .15s; }
+  .flow-wrap .back-link:hover { color:var(--fg); }
+  .flow-wrap .page-title { font-size:16px; font-weight:600; margin-top:8px; }
+  .flow-wrap .page-title span { color:var(--muted); }
+  .flow-wrap .block-count { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .flow-wrap .add-btn {
+	display:inline-flex; align-items:center; gap:6px;
+	padding:8px 16px; border-radius:10px; font-size:13px; font-weight:600;
+	background:var(--primary) !important; color:var(--primaryFg) !important;
+	border:none !important; text-decoration:none; transition:opacity .15s;
+  }
+  .flow-wrap .add-btn:hover { opacity:.9; }
+
+  .flow-wrap .block-card {
+	background:var(--card); border:1px solid var(--border);
+	border-radius:14px; padding:20px; box-shadow:var(--shadow);
+  }
+
+  .flow-wrap .tag {
+	display:inline-flex; align-items:center;
+	font-size:11px; padding:2px 8px; border-radius:6px;
+	border:1px solid var(--border); background:var(--panel2); color:var(--muted);
+  }
+  .flow-wrap .tag-file { background:hsl(142 60% 45% / .1); border-color:hsl(142 60% 45% / .2); color:hsl(142 60% 50%); }
+  .flow-wrap .tag-gate { background:hsl(210 80% 55% / .1); border-color:hsl(210 80% 55% / .2); color:hsl(210 80% 65%); }
+  .flow-wrap .tag-inactive { background:hsl(0 65% 55% / .1); border-color:hsl(0 65% 55% / .2); color:var(--dangerFg); }
+
+  .flow-wrap .block-title { font-size:14px; font-weight:500; margin-top:10px; }
+  .flow-wrap .block-text { margin-top:8px; white-space:pre-wrap; font-size:13px; color:var(--muted); line-height:1.6; }
+  .flow-wrap .block-detail { font-size:12px; color:var(--muted); margin-top:6px; }
+  .flow-wrap .block-detail span { color:var(--fg); }
+
+  .flow-wrap .gate-box {
+	margin-top:12px; padding:12px 16px; border-radius:10px;
+	background:var(--panel2); border:1px solid var(--border);
+  }
+  .flow-wrap .gate-box .gate-label { font-size:12px; color:var(--muted); }
+  .flow-wrap .gate-box .gate-val { font-size:12px; color:var(--muted); margin-top:4px; }
+  .flow-wrap .gate-box .gate-val span { color:var(--fg); }
+
+  .flow-wrap .action-btn {
+	display:block; width:100%; text-align:center; padding:8px 0;
+	border-radius:8px; font-size:13px; cursor:pointer; transition:all .15s;
+	background:var(--btnBg); border:1px solid var(--border); color:var(--fg);
+	text-decoration:none;
+  }
+  .flow-wrap .action-btn:hover { background:var(--btnHover); }
+  .flow-wrap .action-btn.del {
+	background:var(--dangerBg) !important; border-color:var(--dangerBorder) !important; color:var(--dangerFg) !important;
+  }
+  .flow-wrap .action-btn.del:hover { background:var(--dangerHover) !important; }
+</style>
+
+<div class="flow-wrap">
   <div class="flex items-center justify-between gap-4">
 	<div>
-	  <a href="/" class="text-xs text-white/50 hover:text-white/70">← back</a>
-	  <h1 class="text-base font-medium mt-2">Flow: <span class="text-white/80">{{ flow }}</span></h1>
-	  <div class="text-xs text-white/40 mt-1">Блоков: {{ blocks|length }}</div>
+	  <a href="/" class="back-link"><i class="fa-solid fa-arrow-left" style="font-size:10px;margin-right:4px"></i> back</a>
+	  <h1 class="page-title">Flow: <span>{{ flow }}</span></h1>
+	  <div class="block-count">Блоков: {{ blocks|length }}</div>
 	</div>
-
-	<a href="/block/new?flow={{ flow }}"
-	   class="px-4 py-2 rounded-xl bg-white text-black text-sm font-medium hover:opacity-90">
-	  + Add block
+	<a href="/block/new?flow={{ flow }}" class="add-btn">
+	  <i class="fa-solid fa-plus" style="font-size:11px"></i> Add block
 	</a>
   </div>
 
   <div class="mt-6 space-y-3">
 	{% for b in blocks %}
-	  <div class="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+	  <div class="block-card">
 		<div class="flex items-start justify-between gap-4">
 		  <div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">
-			  <span class="text-[11px] px-2 py-1 rounded-lg bg-white/5 border border-white/10">{{ b.type }}</span>
-			  <span class="text-[11px] text-white/45">pos {{ b.position }}</span>
-			  <span class="text-[11px] text-white/45">delay {{ "%.1f"|format(b.delay) }}s</span>
-
+			  <span class="tag">{{ b.type }}</span>
+			  <span style="font-size:11px;color:var(--muted);">pos {{ b.position }}</span>
+			  <span style="font-size:11px;color:var(--muted);">delay {{ "%.1f"|format(b.delay) }}s</span>
 			  {% if b.file_path %}
-				<span class="text-[11px] px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200">
-				  file
-				</span>
+				<span class="tag tag-file"><i class="fa-solid fa-paperclip" style="font-size:9px;margin-right:3px"></i> file</span>
 			  {% endif %}
-
-			  {# ✅ GATE badge #}
 			  {% if b.gate_next_flow %}
-				<span class="text-[11px] px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-200">
-				  GATE → {{ b.gate_next_flow }}
-				</span>
+				<span class="tag tag-gate"><i class="fa-solid fa-door-open" style="font-size:9px;margin-right:3px"></i> GATE → {{ b.gate_next_flow }}</span>
 			  {% endif %}
-
 			  {% if b.is_active == 0 %}
-				<span class="text-[11px] px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-200">inactive</span>
+				<span class="tag tag-inactive">inactive</span>
 			  {% endif %}
 			</div>
 
 			{% if b.title %}
-			  <div class="mt-2 font-medium text-white/90">{{ b.title }}</div>
+			  <div class="block-title">{{ b.title }}</div>
 			{% endif %}
-
 			{% if b.text %}
-			  <pre class="mt-2 whitespace-pre-wrap text-sm text-white/80">{{ b.text }}</pre>
+			  <pre class="block-text">{{ b.text }}</pre>
 			{% endif %}
-
 			{% if b.circle %}
-			  <div class="mt-2 text-xs text-white/45">circle: {{ b.circle }}</div>
+			  <div class="block-detail">circle: <span>{{ b.circle }}</span></div>
 			{% endif %}
-
 			{% if b.video %}
-			  <div class="mt-2 text-xs text-white/45">video: {{ b.video }}</div>
+			  <div class="block-detail">video: <span>{{ b.video }}</span></div>
 			{% endif %}
-
 			{% if b.buttons %}
-			  <div class="mt-2 text-xs text-white/45">buttons: {{ b.buttons }}</div>
+			  <div class="block-detail">buttons: <span>{{ b.buttons }}</span></div>
 			{% endif %}
-
 			{% if b.file_path %}
-			  <div class="mt-2 text-xs text-white/45">
-				file: <span class="text-white/70">{{ b.file_path }}</span>
+			  <div class="block-detail">
+				file: <span>{{ b.file_path }}</span>
 				{% if b.file_kind %}
-				  <span class="text-white/35">({{ b.file_kind }})</span>
+				  <span style="color:var(--muted2)">({{ b.file_kind }})</span>
 				{% endif %}
 			  </div>
 			{% endif %}
 
-			{# ✅ GATE details #}
 			{% if b.gate_next_flow %}
-			  <div class="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
-				<div class="text-xs text-white/60">
-				  Gate enabled: после этого блока бот остановится и покажет кнопку
-				</div>
-				<div class="mt-2 text-xs text-white/45">
-				  next_flow: <span class="text-white/70">{{ b.gate_next_flow }}</span>
-				</div>
+			  <div class="gate-box">
+				<div class="gate-label"><i class="fa-solid fa-door-open" style="font-size:10px;margin-right:4px"></i> Gate enabled: после этого блока бот остановится и покажет кнопку</div>
+				<div class="gate-val">next_flow: <span>{{ b.gate_next_flow }}</span></div>
 				{% if b.gate_button_text %}
-				  <div class="mt-1 text-xs text-white/45">
-					button_text: <span class="text-white/70">{{ b.gate_button_text }}</span>
-				  </div>
+				  <div class="gate-val">button_text: <span>{{ b.gate_button_text }}</span></div>
 				{% endif %}
 				{% if b.gate_reminder_seconds and b.gate_reminder_seconds|int > 0 %}
-				  <div class="mt-1 text-xs text-white/45">
-					reminder: <span class="text-white/70">{{ b.gate_reminder_seconds }}</span> sec
-				  </div>
+				  <div class="gate-val">reminder: <span>{{ b.gate_reminder_seconds }}</span> sec</div>
 				{% endif %}
 				{% if b.gate_reminder_text %}
-				  <div class="mt-1 text-xs text-white/45">
-					reminder_text: <span class="text-white/70">{{ b.gate_reminder_text }}</span>
-				  </div>
+				  <div class="gate-val">reminder_text: <span>{{ b.gate_reminder_text }}</span></div>
 				{% endif %}
 			  </div>
 			{% endif %}
 		  </div>
 
-		  <div class="flex flex-col gap-2 w-[92px]">
-			<a href="/block/{{ b.id }}/edit"
-			   class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10 text-center">
-			  Edit
+		  <div class="flex flex-col gap-2" style="width:88px;flex-shrink:0;">
+			<a href="/block/{{ b.id }}/edit" class="action-btn">
+			  <i class="fa-solid fa-pen" style="font-size:11px;margin-right:4px"></i> Edit
 			</a>
-
 			<form method="post" action="/block/{{ b.id }}/up">
 			  <input type="hidden" name="flow" value="{{ flow }}" />
-			  <button class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10">↑</button>
+			  <button class="action-btn"><i class="fa-solid fa-arrow-up" style="font-size:11px"></i></button>
 			</form>
-
 			<form method="post" action="/block/{{ b.id }}/down">
 			  <input type="hidden" name="flow" value="{{ flow }}" />
-			  <button class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10">↓</button>
+			  <button class="action-btn"><i class="fa-solid fa-arrow-down" style="font-size:11px"></i></button>
 			</form>
-
 			<form method="post" action="/block/{{ b.id }}/delete" onsubmit="return confirm('Удалить блок?')">
 			  <input type="hidden" name="flow" value="{{ flow }}" />
-			  <button class="w-full px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-sm hover:bg-red-500/20 text-red-200">
-				Delete
-			  </button>
+			  <button class="action-btn del"><i class="fa-solid fa-trash-can" style="font-size:11px;margin-right:4px"></i> Delete</button>
 			</form>
 		  </div>
 		</div>
 	  </div>
 	{% endfor %}
   </div>
+</div>
 {% endblock %}
