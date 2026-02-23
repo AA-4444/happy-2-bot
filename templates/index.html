@@ -483,45 +483,48 @@
 
 	{% for f in flows %}
 	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
-	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
 	  {% set unit = (tr.offset_unit if tr and tr.offset_unit is defined else "minutes") %}
+	  {% set mode = (tr.mode if tr and tr.mode is defined else "off") %}
 	
 	  <form method="POST" action="/flow/{{ f }}/trigger">
 		<div class="seq-row">
 		  
 		  <div class="seq-left">
-			<span class="badge">{{ f }}</span>
+			<span class="badge" style="font-size:13px;font-weight:500;">{{ f }}</span>
 	
-			<!-- фикс для чекбокса -->
-			<input type="hidden" name="enabled" value="0">
+			<!-- если чекбокс НЕ отмечен → отправится mode=off -->
+			<input type="hidden" name="mode" value="off">
 	
-			<label>
-			  <input type="checkbox" name="enabled" value="1"
-				{% if enabled %}checked{% endif %}>
+			<label class="check-label">
+			  <input type="checkbox"
+					 name="mode"
+					 value="auto"
+					 {% if mode == "auto" %}checked{% endif %}>
 			  run after /start
 			</label>
 		  </div>
 	
 		  <div class="seq-right">
-			<span>delay</span>
+			<span style="font-size:12px;color:var(--muted);">delay</span>
 	
 			<input type="number"
 				   name="offset_value"
 				   value="{{ tr.offset_value if tr else 0 }}"
-				   style="width:70px">
+				   style="width:70px;text-align:center;">
 	
 			<select name="offset_unit">
-			  <option value="minutes" {% if unit=="minutes" %}selected{% endif %}>minutes</option>
-			  <option value="hours" {% if unit=="hours" %}selected{% endif %}>hours</option>
-			  <option value="days" {% if unit=="days" %}selected{% endif %}>days</option>
+			  <option value="minutes" {% if unit == "minutes" %}selected{% endif %}>minutes</option>
+			  <option value="hours" {% if unit == "hours" %}selected{% endif %}>hours</option>
+			  <option value="days" {% if unit == "days" %}selected{% endif %}>days</option>
 			</select>
 	
-			<button type="submit">Save</button>
+			<button type="submit" class="btn btn-sm btn-primary">
+			  <i class="fa-solid fa-floppy-disk"></i> Save
+			</button>
 		  </div>
 	
 		</div>
 	  </form>
-	
 	{% endfor %}
   </div>
 
