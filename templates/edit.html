@@ -2,195 +2,284 @@
 {% extends "base.html" %}
 {% block content %}
 
-  <div class="flex items-center justify-between">
-	<h1 class="text-base font-medium">{{ "New block" if is_new else "Edit block" }}</h1>
-	<a href="/flow/{{ block.get('flow','') }}" class="text-sm" style="color:var(--muted2);">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+	--bg: #f5f6f8;
+	--bg-card: #ffffff;
+	--bg-muted: #f0f1f4;
+	--bg-hover: #f7f8fa;
+	--border: #e2e4ea;
+	--text: #1a1d24;
+	--text-sec: #5f6672;
+	--text-muted: #8b919d;
+	--primary: #2563eb;
+	--primary-hover: #1d4ed8;
+	--primary-dim: rgba(37,99,235,0.08);
+	--green: #16a34a;
+	--green-dim: rgba(22,163,74,0.1);
+	--green-border: #bbf7d0;
+	--orange: #ea580c;
+	--orange-dim: rgba(234,88,12,0.1);
+	--red: #dc2626;
+	--red-dim: rgba(220,38,38,0.08);
+	--red-border: #fecaca;
+	--blue: #2563eb;
+	--blue-dim: rgba(37,99,235,0.08);
+	--purple: #7c3aed;
+	--purple-dim: rgba(124,58,237,0.08);
+	--radius: 8px;
+	--shadow: 0 1px 3px rgba(0,0,0,0.06);
+	--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+	--mono: 'JetBrains Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+	:root {
+	  --bg: #0f1117;
+	  --bg-card: #1a1d27;
+	  --bg-muted: #1f2230;
+	  --bg-hover: #22252f;
+	  --border: #2d3140;
+	  --text: #e4e6eb;
+	  --text-sec: #9ca3af;
+	  --text-muted: #6b7280;
+	  --primary: #3b82f6;
+	  --primary-hover: #2563eb;
+	  --primary-dim: rgba(59,130,246,0.12);
+	  --green-dim: rgba(22,163,74,0.15);
+	  --green-border: #166534;
+	  --orange-dim: rgba(234,88,12,0.15);
+	  --red-dim: rgba(220,38,38,0.15);
+	  --red-border: #991b1b;
+	  --blue-dim: rgba(59,130,246,0.12);
+	  --purple-dim: rgba(124,58,237,0.12);
+	  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+	}
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; line-height:1.5; }
+  code, .mono { font-family:var(--mono); }
+
+  .edit-wrap { max-width:900px; margin:0 auto; padding:24px 16px; }
+
+  /* Card */
+  .card {
+	background:var(--bg-card); border:1px solid var(--border);
+	border-radius:var(--radius); overflow:hidden; margin-bottom:24px;
+	box-shadow:var(--shadow);
+  }
+
+  /* Form inputs */
+  input[type="text"], input[type="number"], select, textarea {
+	height:36px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+	padding:0 10px; font-size:13px; color:var(--text);
+	font-family:var(--font); outline:none; transition:border-color .15s;
+	width:100%;
+  }
+  textarea { height:auto; padding:10px; resize:vertical; }
+  input:focus, select:focus, textarea:focus { border-color:var(--primary); box-shadow:0 0 0 2px rgba(37,99,235,0.12); }
+  input::placeholder, textarea::placeholder { color:var(--text-muted); }
+  select { cursor:pointer; }
+  input[type="file"] { border:none; background:none; height:auto; padding:0; }
+
+  /* Labels */
+  .field-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; display:block; margin-bottom:5px; }
+  .field-hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+  /* Buttons */
+  .btn {
+	display:inline-flex; align-items:center; gap:6px;
+	height:36px; padding:0 14px; border-radius:6px; font-size:13px; font-weight:500;
+	border:none; cursor:pointer; transition:all .15s; font-family:var(--font);
+	white-space:nowrap;
+  }
+  .btn i { font-size:12px; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-hover); }
+  .btn-sm { height:30px; padding:0 10px; font-size:12px; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-sec); }
+  .btn-outline:hover { background:var(--bg-hover); border-color:var(--text-muted); }
+  .btn-link {
+	display:inline-flex; align-items:center; gap:6px;
+	font-size:13px; color:var(--text-sec); background:none; border:none;
+	cursor:pointer; text-decoration:none; transition:color .15s;
+  }
+  .btn-link:hover { color:var(--text); }
+
+  /* Section panels */
+  .section-panel {
+	background:var(--bg-muted); border:1px solid var(--border);
+	border-radius:var(--radius); padding:20px; margin-bottom:16px;
+  }
+  .section-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .section-subtitle { font-size:12px; color:var(--text-muted); }
+
+  /* Error */
+  .error-box {
+	background:var(--red-dim); border:1px solid var(--red-border);
+	border-radius:var(--radius); padding:12px 16px; font-size:13px; color:var(--red);
+	margin-bottom:16px;
+  }
+
+  /* Grid helpers */
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media(max-width:768px){
+	.grid-3, .grid-2 { grid-template-columns:1fr; }
+  }
+
+  /* Header bar */
+  .edit-header {
+	display:flex; align-items:center; justify-content:space-between;
+	padding:16px 20px; background:var(--bg-card);
+	border:1px solid var(--border); border-radius:var(--radius);
+	margin-bottom:24px; box-shadow:var(--shadow);
+  }
+  .edit-header h1 { font-size:18px; font-weight:600; }
+
+  /* Checkbox */
+  input[type="checkbox"] { accent-color:var(--primary); width:15px; height:15px; cursor:pointer; border:none; height:auto; }
+  .check-label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sec); cursor:pointer; }
+
+  details summary { cursor:pointer; }
+</style>
+
+<div class="edit-wrap">
+
+  <!-- Header -->
+  <div class="edit-header">
+	<h1>
+	  <i class="fa-solid fa-pen-to-square" style="font-size:16px;color:var(--primary);margin-right:8px;"></i>
+	  {{ "New block" if is_new else "Edit block" }}
+	</h1>
+	<a href="/flow/{{ block.get('flow','') }}" class="btn-link">
 	  <i class="fa-solid fa-arrow-left" style="font-size:11px"></i> back
 	</a>
   </div>
 
   {% if error %}
-	<div class="mt-4 rounded-2xl p-3 text-sm" style="border:1px solid var(--dangerBorder);background:var(--dangerBg);color:var(--dangerFg);">
-	  {{ error }}
+	<div class="error-box">
+	  <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>{{ error }}
 	</div>
   {% endif %}
 
-  <form class="mt-6 space-y-4" method="post" action="/block/save" enctype="multipart/form-data">
+  <form method="post" action="/block/save" enctype="multipart/form-data">
 	<input type="hidden" name="block_id" value="{{ block.get('id', 0) }}" />
 	<input type="hidden" name="file_path" value="{{ block.get('file_path','') }}" />
 	<input type="hidden" name="file_kind" value="{{ block.get('file_kind','') }}" />
 	<input type="hidden" name="file_name" value="{{ block.get('file_name','') }}" />
 	<input type="hidden" id="delaySeconds" name="delay_seconds" value="{{ block.get('delay', 1.0) }}" />
 
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">flow</label>
-		<input
-		  name="flow"
-		  value="{{ block.get('flow','') }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
-	  </div>
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">position</label>
-		<input
-		  name="position"
-		  type="number"
-		  value="{{ block.get('position', 1) }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
-	  </div>
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">type</label>
-		<select
-		  id="typeSel"
-		  name="type"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		>
-		  {% set cur_type = block.get('type','text') %}
-		  {% for t in ["text","circle","video","buttons"] %}
-			<option value="{{ t }}" {% if cur_type == t %}selected{% endif %}>{{ t }}</option>
-		  {% endfor %}
-		</select>
-	  </div>
-	</div>
-
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">title (для video/buttons)</label>
-		<input
-		  name="title"
-		  value="{{ block.get('title','') }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
-	  </div>
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">delay</label>
-		<div class="text-[11px]" style="color:var(--muted2);margin-top:-2px;">можно ставить минуты/часы/дни (в базу уйдёт в секундах)</div>
-		<div class="mt-1 flex items-center gap-2">
-		  <input
-			id="delayValue"
-			type="number"
-			min="0"
-			step="1"
-			value=""
-			class="w-24 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="1"
-		  />
-		  <select
-			id="delayUnit"
-			class="px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		  >
-			<option value="seconds">seconds</option>
-			<option value="minutes">minutes</option>
-			<option value="hours">hours</option>
-			<option value="days">days</option>
+	<!-- Basic fields -->
+	<div class="card" style="padding:20px;">
+	  <div class="grid-3" style="margin-bottom:12px;">
+		<div>
+		  <label class="field-label">Flow</label>
+		  <input name="flow" value="{{ block.get('flow','') }}" />
+		</div>
+		<div>
+		  <label class="field-label">Position</label>
+		  <input name="position" type="number" value="{{ block.get('position', 1) }}" />
+		</div>
+		<div>
+		  <label class="field-label">Type</label>
+		  <select id="typeSel" name="type">
+			{% set cur_type = block.get('type','text') %}
+			{% for t in ["text","circle","video","buttons"] %}
+			  <option value="{{ t }}" {% if cur_type == t %}selected{% endif %}>{{ t }}</option>
+			{% endfor %}
 		  </select>
-		  <button
-			type="button"
-			class="px-3 py-2 rounded-xl text-sm"
-			style="background:var(--btnBg);border:1px solid var(--btnBorder);color:var(--fg);"
-			onclick="applyDelayToSeconds()"
-			title="Синхронизировать delay → delay_seconds"
-		  >
-			Apply
-		  </button>
-		</div>
-		<div class="mt-2 text-[11px]" style="color:var(--muted2);">
-		  Сейчас: <span style="color:var(--fg);"><code id="delaySecondsPreview">{{ block.get('delay', 1.0) }}</code> sec</span>
 		</div>
 	  </div>
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">is_active (0/1)</label>
-		<input
-		  name="is_active"
-		  type="number"
-		  value="{{ block.get('is_active', 1) }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
+
+	  <div class="grid-3">
+		<div>
+		  <label class="field-label">Title <span style="font-weight:400;text-transform:none;">(для video/buttons)</span></label>
+		  <input name="title" value="{{ block.get('title','') }}" />
+		</div>
+		<div>
+		  <label class="field-label">Delay</label>
+		  <div class="field-hint" style="margin-top:-2px;margin-bottom:6px;">можно ставить минуты/часы/дни (в базу уйдёт в секундах)</div>
+		  <div style="display:flex;align-items:center;gap:8px;">
+			<input id="delayValue" type="number" min="0" step="1" value="" placeholder="1" style="width:80px;" />
+			<select id="delayUnit" style="width:auto;">
+			  <option value="seconds">seconds</option>
+			  <option value="minutes">minutes</option>
+			  <option value="hours">hours</option>
+			  <option value="days">days</option>
+			</select>
+			<button type="button" class="btn btn-sm btn-outline" onclick="applyDelayToSeconds()" title="Синхронизировать delay → delay_seconds">
+			  Apply
+			</button>
+		  </div>
+		  <div class="field-hint" style="margin-top:6px;">
+			Сейчас: <code id="delaySecondsPreview" class="mono" style="color:var(--text);">{{ block.get('delay', 1.0) }}</code> sec
+		  </div>
+		</div>
+		<div>
+		  <label class="field-label">is_active (0/1)</label>
+		  <input name="is_active" type="number" value="{{ block.get('is_active', 1) }}" />
+		</div>
 	  </div>
 	</div>
 
 	<!-- TEXT -->
-	<div id="secText">
-	  <label class="text-xs" style="color:var(--muted2)">text</label>
-	  <textarea
-		name="text"
-		rows="6"
-		class="w-full mt-1 px-3 py-2 rounded-xl"
-		style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-	  >{{ block.get('text','') }}</textarea>
+	<div class="card" style="padding:20px;" id="secText">
+	  <label class="field-label"><i class="fa-solid fa-align-left" style="margin-right:4px;font-size:11px;"></i>Text</label>
+	  <textarea name="text" rows="6">{{ block.get('text','') }}</textarea>
 	</div>
 
 	<!-- MEDIA -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="secMedia">
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">circle_path (или загрузить файл)</label>
-		<input
-		  name="circle_path"
-		  value="{{ block.get('circle','') }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
-		<div class="mt-2">
-		  <input type="file" name="circle_file" class="text-sm" style="color:var(--muted);" />
+	<div class="card" style="padding:20px;" id="secMedia">
+	  <div class="grid-2">
+		<div>
+		  <label class="field-label"><i class="fa-solid fa-circle-play" style="margin-right:4px;font-size:11px;"></i>circle_path (или загрузить файл)</label>
+		  <input name="circle_path" value="{{ block.get('circle','') }}" />
+		  <div style="margin-top:8px;">
+			<input type="file" name="circle_file" style="font-size:13px;color:var(--text-sec);" />
+		  </div>
+		  {% if block.get('circle') %}
+			<div class="field-hint">current: {{ block.get('circle') }}</div>
+		  {% endif %}
 		</div>
-		{% if block.get('circle') %}
-		  <div class="mt-2 text-[11px]" style="color:var(--muted2);">current: {{ block.get('circle') }}</div>
-		{% endif %}
-	  </div>
-	  <div>
-		<label class="text-xs" style="color:var(--muted2)">video_url</label>
-		<input
-		  name="video_url"
-		  value="{{ block.get('video','') }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		/>
+		<div>
+		  <label class="field-label"><i class="fa-solid fa-video" style="margin-right:4px;font-size:11px;"></i>video_url</label>
+		  <input name="video_url" value="{{ block.get('video','') }}" />
+		</div>
 	  </div>
 	</div>
 
 	<!-- ATTACHMENT -->
-	<div class="rounded-2xl p-4" style="border:1px solid var(--border);background:var(--panel2);">
-	  <div class="flex items-center justify-between mb-3">
-		<div class="text-sm font-medium">
-		  <i class="fa-solid fa-paperclip" style="font-size:12px;color:var(--muted);margin-right:6px;"></i>Attachment
-		</div>
-		<div class="text-xs" style="color:var(--muted2);">любой файл (pdf/docx/png/zip и т.д.)</div>
+	<div class="section-panel">
+	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+		<div class="section-title"><i class="fa-solid fa-paperclip" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Attachment</div>
+		<span class="section-subtitle">любой файл (pdf/docx/png/zip и т.д.)</span>
 	  </div>
-	  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+	  <div class="grid-2">
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">upload file</label>
-		  <input type="file" name="attach_file" class="block mt-2 text-sm" style="color:var(--muted);" />
-		  <div class="text-[11px] mt-2" style="color:var(--muted2);">
-			Если загрузишь — файл сохранится в <code>media/</code> и будет отправляться ботом в этом блоке.
+		  <label class="field-label">Upload file</label>
+		  <input type="file" name="attach_file" style="font-size:13px;color:var(--text-sec);margin-top:4px;" />
+		  <div class="field-hint">
+			Если загрузишь — файл сохранится в <code class="mono">media/</code> и будет отправляться ботом в этом блоке.
 		  </div>
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">current</label>
-		  <div class="mt-2 text-sm">
+		  <label class="field-label">Current</label>
+		  <div style="margin-top:4px;font-size:13px;">
 			{% if block.get('file_path') %}
-			  <div class="text-[11px]" style="color:var(--muted2);">kind: {{ block.get('file_kind','') }}</div>
-			  <a style="color:var(--fg);text-decoration:underline;" href="{{ block.get('file_path') }}" target="_blank">{{ block.get('file_path') }}</a>
+			  <div class="field-hint">kind: {{ block.get('file_kind','') }}</div>
+			  <a style="color:var(--primary);text-decoration:underline;" href="{{ block.get('file_path') }}" target="_blank">{{ block.get('file_path') }}</a>
 			{% else %}
-			  <span style="color:var(--muted2);">—</span>
+			  <span style="color:var(--text-muted);">—</span>
 			{% endif %}
 		  </div>
-		  <div class="mt-3">
-			<button
-			  type="button"
-			  class="px-3 py-2 rounded-xl text-sm"
-			  style="background:var(--btnBg);border:1px solid var(--btnBorder);color:var(--fg);"
-			  onclick="clearAttachment()"
-			>
-			  <i class="fa-solid fa-xmark" style="font-size:11px;margin-right:4px;"></i>Clear attachment
+		  <div style="margin-top:10px;">
+			<button type="button" class="btn btn-sm btn-outline" onclick="clearAttachment()">
+			  <i class="fa-solid fa-xmark" style="font-size:11px;"></i> Clear attachment
 			</button>
 		  </div>
 		</div>
@@ -198,290 +287,197 @@
 	</div>
 
 	<!-- NEXT LESSON GATE -->
-	<div class="rounded-2xl p-4" style="border:1px solid var(--border);background:var(--panel2);">
-	  <div class="flex items-center justify-between mb-3">
-		<div class="text-sm font-medium">
-		  <i class="fa-solid fa-door-open" style="font-size:12px;color:var(--muted);margin-right:6px;"></i>Next lesson gate
-		</div>
-		<div class="text-xs" style="color:var(--muted2);">кнопка "Готов…" + напоминание</div>
+	<div class="section-panel">
+	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+		<div class="section-title"><i class="fa-solid fa-door-open" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Next lesson gate</div>
+		<span class="section-subtitle">кнопка "Готов…" + напоминание</span>
 	  </div>
-	  <div class="text-[11px] mb-4" style="color:var(--muted2);">
+	  <div class="field-hint" style="margin-bottom:14px;">
 		Если заполнить <b>Next flow</b> — бот после этого блока остановится и покажет кнопку.
 		По нажатию — запустит выбранный flow.
 	  </div>
-	  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+	  <div class="grid-2" style="margin-bottom:12px;">
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Next flow (что запускать после кнопки)</label>
+		  <label class="field-label">Next flow (что запускать после кнопки)</label>
 		  {% if flows is defined and flows %}
-			<select
-			  name="gate_next_flow"
-			  class="w-full mt-1 px-3 py-2 rounded-xl"
-			  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			>
+			<select name="gate_next_flow">
 			  <option value="">— disabled —</option>
 			  {% for f in flows %}
 				<option value="{{ f }}" {% if block.get('gate_next_flow','') == f %}selected{% endif %}>{{ f }}</option>
 			  {% endfor %}
 			</select>
 		  {% else %}
-			<input
-			  name="gate_next_flow"
-			  value="{{ block.get('gate_next_flow','') }}"
-			  class="w-full mt-1 px-3 py-2 rounded-xl"
-			  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			  placeholder="например: day2"
-			/>
-			<div class="text-[11px] mt-1" style="color:var(--muted2);">
-			  (чтобы был dropdown — нужно передать <code>flows</code> в шаблон из crm.py)
+			<input name="gate_next_flow" value="{{ block.get('gate_next_flow','') }}" placeholder="например: day2" />
+			<div class="field-hint">
+			  (чтобы был dropdown — нужно передать <code class="mono">flows</code> в шаблон из crm.py)
 			</div>
 		  {% endif %}
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button text</label>
-		  <input
-			name="gate_button_text"
-			value="{{ block.get('gate_button_text') or '✅ Готов к следующему уроку' }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		  />
+		  <label class="field-label">Button text</label>
+		  <input name="gate_button_text" value="{{ block.get('gate_button_text') or '✅ Готов к следующему уроку' }}" />
 		</div>
 	  </div>
-	  <div class="mt-3">
-		<label class="text-xs" style="color:var(--muted2)">Text above button (editable)</label>
-		<input
-		  name="gate_prompt_text"
-		  value="{{ block.get('gate_prompt_text','') }}"
-		  class="w-full mt-1 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		  placeholder="👇 Нажми кнопку, чтобы перейти дальше"
-		/>
-		<div class="text-[11px] mt-1" style="color:var(--muted2);">
-		  Если пусто — бот использует дефолтный текст.
-		</div>
+	  <div style="margin-bottom:12px;">
+		<label class="field-label">Text above button (editable)</label>
+		<input name="gate_prompt_text" value="{{ block.get('gate_prompt_text','') }}" placeholder="👇 Нажми кнопку, чтобы перейти дальше" />
+		<div class="field-hint">Если пусто — бот использует дефолтный текст.</div>
 	  </div>
-	  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+	  <div class="grid-3" style="margin-bottom:12px;">
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Reminder</label>
-		  <input
-			name="gate_reminder_value"
-			type="number"
-			min="0"
-			value="{{ block.get('gate_reminder_value', 0) }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="0"
-		  />
-		  <div class="text-[11px] mt-1" style="color:var(--muted2);">0 = без напоминания</div>
+		  <label class="field-label">Reminder</label>
+		  <input name="gate_reminder_value" type="number" min="0" value="{{ block.get('gate_reminder_value', 0) }}" placeholder="0" />
+		  <div class="field-hint">0 = без напоминания</div>
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Unit</label>
+		  <label class="field-label">Unit</label>
 		  {% set u = (block.get('gate_reminder_unit') or 'hours') %}
-		  <select
-			name="gate_reminder_unit"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		  >
+		  <select name="gate_reminder_unit">
 			<option value="minutes" {% if u=='minutes' %}selected{% endif %}>minutes</option>
 			<option value="hours" {% if u=='hours' %}selected{% endif %}>hours</option>
 			<option value="days" {% if u=='days' %}selected{% endif %}>days</option>
 		  </select>
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Reminder text (optional)</label>
-		  <input
-			name="gate_reminder_text"
-			value="{{ block.get('gate_reminder_text','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="Например: Ты готов продолжить? 🙂"
-		  />
+		  <label class="field-label">Reminder text (optional)</label>
+		  <input name="gate_reminder_text" value="{{ block.get('gate_reminder_text','') }}" placeholder="Например: Ты готов продолжить? 🙂" />
 		</div>
 	  </div>
-	  <div class="mt-3 flex items-center gap-3">
-		<button
-		  type="button"
-		  class="px-3 py-2 rounded-xl text-sm"
-		  style="background:var(--btnBg);border:1px solid var(--btnBorder);color:var(--fg);"
-		  onclick="clearGate()"
-		>
-		  <i class="fa-solid fa-ban" style="font-size:11px;margin-right:4px;"></i>Disable gate
+	  <div style="display:flex;align-items:center;gap:10px;">
+		<button type="button" class="btn btn-sm btn-outline" onclick="clearGate()">
+		  <i class="fa-solid fa-ban" style="font-size:11px;"></i> Disable gate
 		</button>
-		<div class="text-[11px]" style="color:var(--muted2);">
-		  Disabled = поле Next flow станет пустым (gate выключен).
-		</div>
+		<span class="field-hint">Disabled = поле Next flow станет пустым (gate выключен).</span>
 	  </div>
 	</div>
 
 	<!-- BUTTONS EASY MODE -->
-	<div id="secButtons" class="rounded-2xl p-4" style="border:1px solid var(--border);background:var(--panel2);">
-	  <div class="flex items-center justify-between mb-3">
-		<div class="text-sm font-medium">
-		  <i class="fa-solid fa-grip" style="font-size:12px;color:var(--muted);margin-right:6px;"></i>Buttons
-		</div>
-		<div class="text-xs" style="color:var(--muted2);">до 3 кнопок</div>
+	<div class="section-panel" id="secButtons">
+	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+		<div class="section-title"><i class="fa-solid fa-grip" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Buttons</div>
+		<span class="section-subtitle">до 3 кнопок</span>
 	  </div>
-	  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+	  <div class="grid-2" style="margin-bottom:12px;">
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 1 text</label>
-		  <input
-			name="btn1_text"
-			value="{{ block.get('btn1_text','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="Например: Перейти на сайт"
-		  />
+		  <label class="field-label">Button 1 text</label>
+		  <input name="btn1_text" value="{{ block.get('btn1_text','') }}" placeholder="Например: Перейти на сайт" />
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 1 url</label>
-		  <input
-			name="btn1_url"
-			value="{{ block.get('btn1_url','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="https://..."
-		  />
+		  <label class="field-label">Button 1 url</label>
+		  <input name="btn1_url" value="{{ block.get('btn1_url','') }}" placeholder="https://..." />
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 2 text</label>
-		  <input
-			name="btn2_text"
-			value="{{ block.get('btn2_text','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="(опционально)"
-		  />
+		  <label class="field-label">Button 2 text</label>
+		  <input name="btn2_text" value="{{ block.get('btn2_text','') }}" placeholder="(опционально)" />
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 2 url</label>
-		  <input
-			name="btn2_url"
-			value="{{ block.get('btn2_url','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="https://..."
-		  />
+		  <label class="field-label">Button 2 url</label>
+		  <input name="btn2_url" value="{{ block.get('btn2_url','') }}" placeholder="https://..." />
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 3 text</label>
-		  <input
-			name="btn3_text"
-			value="{{ block.get('btn3_text','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="(опционально)"
-		  />
+		  <label class="field-label">Button 3 text</label>
+		  <input name="btn3_text" value="{{ block.get('btn3_text','') }}" placeholder="(опционально)" />
 		</div>
 		<div>
-		  <label class="text-xs" style="color:var(--muted2)">Button 3 url</label>
-		  <input
-			name="btn3_url"
-			value="{{ block.get('btn3_url','') }}"
-			class="w-full mt-1 px-3 py-2 rounded-xl"
-			style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-			placeholder="https://..."
-		  />
+		  <label class="field-label">Button 3 url</label>
+		  <input name="btn3_url" value="{{ block.get('btn3_url','') }}" placeholder="https://..." />
 		</div>
 	  </div>
-	  <details class="mt-4">
-		<summary class="text-xs cursor-pointer" style="color:var(--muted2);">Advanced (JSON)</summary>
-		<textarea
-		  name="buttons_json"
-		  rows="4"
-		  class="w-full mt-2 px-3 py-2 rounded-xl"
-		  style="background:var(--inputBg);border:1px solid var(--inputBorder);color:var(--fg);"
-		>{{ block.get('buttons_json','') or block.get('buttons','') }}</textarea>
-		<div class="text-[11px] mt-1" style="color:var(--muted2);">
-		  Если заполнено — будет использован JSON. Иначе берём кнопки сверху.
-		</div>
+	  <details>
+		<summary style="font-size:12px;color:var(--text-muted);">Advanced (JSON)</summary>
+		<textarea name="buttons_json" rows="4" style="margin-top:8px;">{{ block.get('buttons_json','') or block.get('buttons','') }}</textarea>
+		<div class="field-hint">Если заполнено — будет использован JSON. Иначе берём кнопки сверху.</div>
 	  </details>
 	</div>
 
-	<button class="px-4 py-2 rounded-xl text-sm font-medium" style="background:var(--primaryBg);color:var(--primaryFg);border:none;">
-	  <i class="fa-solid fa-floppy-disk" style="font-size:12px;margin-right:6px;"></i>Save
+	<!-- Save -->
+	<button type="submit" class="btn btn-primary" style="margin-top:8px;">
+	  <i class="fa-solid fa-floppy-disk"></i> Save
 	</button>
   </form>
+</div>
 
-  <script>
-	function toggleSections() {
-	  const secButtons = document.getElementById("secButtons");
-	  if (secButtons) {
-		secButtons.style.display = "block";
-		secButtons.style.opacity = "1";
-		secButtons.style.pointerEvents = "auto";
-		secButtons.querySelectorAll("input, textarea").forEach(i => i.disabled = false);
-	  }
+<script>
+  function toggleSections() {
+	const secButtons = document.getElementById("secButtons");
+	if (secButtons) {
+	  secButtons.style.display = "block";
+	  secButtons.style.opacity = "1";
+	  secButtons.style.pointerEvents = "auto";
+	  secButtons.querySelectorAll("input, textarea").forEach(i => i.disabled = false);
 	}
-	function clearAttachment() {
-	  const fp = document.querySelector('input[name="file_path"]');
-	  const fk = document.querySelector('input[name="file_kind"]');
-	  const fn = document.querySelector('input[name="file_name"]');
-	  if (fp) fp.value = '';
-	  if (fk) fk.value = '';
-	  if (fn) fn.value = '';
-	  alert('Attachment очищен. Нажми Save.');
-	}
-	function clearGate() {
-	  const nf = document.querySelector('[name="gate_next_flow"]');
-	  const bt = document.querySelector('[name="gate_button_text"]');
-	  const gp = document.querySelector('[name="gate_prompt_text"]');
-	  const rv = document.querySelector('[name="gate_reminder_value"]');
-	  const ru = document.querySelector('[name="gate_reminder_unit"]');
-	  const rt = document.querySelector('[name="gate_reminder_text"]');
-	  if (nf) nf.value = '';
-	  if (bt) bt.value = '';
-	  if (gp) gp.value = '';
-	  if (rv) rv.value = '0';
-	  if (ru) ru.value = 'hours';
-	  if (rt) rt.value = '';
-	  alert('Gate отключён. Нажми Save.');
-	}
-	function unitToSeconds(unit) {
-	  const u = (unit || '').toLowerCase();
-	  if (u === 'minutes') return 60;
-	  if (u === 'hours') return 3600;
-	  if (u === 'days') return 86400;
-	  return 1;
-	}
-	function secondsToValueUnit(sec) {
-	  const s = Math.max(0, Math.floor(Number(sec || 0)));
-	  if (s === 0) return { value: 0, unit: 'seconds' };
-	  if (s % 86400 === 0) return { value: s / 86400, unit: 'days' };
-	  if (s % 3600 === 0) return { value: s / 3600, unit: 'hours' };
-	  if (s % 60 === 0) return { value: s / 60, unit: 'minutes' };
-	  return { value: s, unit: 'seconds' };
-	}
-	function applyDelayToSeconds() {
-	  const vEl = document.getElementById('delayValue');
-	  const uEl = document.getElementById('delayUnit');
-	  const sEl = document.getElementById('delaySeconds');
-	  const pEl = document.getElementById('delaySecondsPreview');
-	  const v = Math.max(0, Math.floor(Number((vEl && vEl.value) || 0)));
-	  const u = (uEl && uEl.value) || 'seconds';
-	  const sec = v * unitToSeconds(u);
-	  if (sEl) sEl.value = String(sec);
-	  if (pEl) pEl.textContent = String(sec);
-	}
-	function initDelayUI() {
-	  const sEl = document.getElementById('delaySeconds');
-	  const vEl = document.getElementById('delayValue');
-	  const uEl = document.getElementById('delayUnit');
-	  const pEl = document.getElementById('delaySecondsPreview');
-	  const sec = Number((sEl && sEl.value) || 0);
-	  const vu = secondsToValueUnit(sec);
-	  if (vEl) vEl.value = String(vu.value);
-	  if (uEl) uEl.value = vu.unit;
-	  if (pEl) pEl.textContent = String(Math.max(0, Math.floor(sec)));
-	}
-	document.addEventListener('DOMContentLoaded', () => {
-	  const typeSel = document.getElementById("typeSel");
-	  if (typeSel) typeSel.addEventListener("change", toggleSections);
-	  toggleSections();
-	  initDelayUI();
-	  const vEl = document.getElementById('delayValue');
-	  const uEl = document.getElementById('delayUnit');
-	  if (vEl) vEl.addEventListener('input', applyDelayToSeconds);
-	  if (uEl) uEl.addEventListener('change', applyDelayToSeconds);
-	});
-  </script>
+  }
+  function clearAttachment() {
+	const fp = document.querySelector('input[name="file_path"]');
+	const fk = document.querySelector('input[name="file_kind"]');
+	const fn = document.querySelector('input[name="file_name"]');
+	if (fp) fp.value = '';
+	if (fk) fk.value = '';
+	if (fn) fn.value = '';
+	alert('Attachment очищен. Нажми Save.');
+  }
+  function clearGate() {
+	const nf = document.querySelector('[name="gate_next_flow"]');
+	const bt = document.querySelector('[name="gate_button_text"]');
+	const gp = document.querySelector('[name="gate_prompt_text"]');
+	const rv = document.querySelector('[name="gate_reminder_value"]');
+	const ru = document.querySelector('[name="gate_reminder_unit"]');
+	const rt = document.querySelector('[name="gate_reminder_text"]');
+	if (nf) nf.value = '';
+	if (bt) bt.value = '';
+	if (gp) gp.value = '';
+	if (rv) rv.value = '0';
+	if (ru) ru.value = 'hours';
+	if (rt) rt.value = '';
+	alert('Gate отключён. Нажми Save.');
+  }
+  function unitToSeconds(unit) {
+	const u = (unit || '').toLowerCase();
+	if (u === 'minutes') return 60;
+	if (u === 'hours') return 3600;
+	if (u === 'days') return 86400;
+	return 1;
+  }
+  function secondsToValueUnit(sec) {
+	const s = Math.max(0, Math.floor(Number(sec || 0)));
+	if (s === 0) return { value: 0, unit: 'seconds' };
+	if (s % 86400 === 0) return { value: s / 86400, unit: 'days' };
+	if (s % 3600 === 0) return { value: s / 3600, unit: 'hours' };
+	if (s % 60 === 0) return { value: s / 60, unit: 'minutes' };
+	return { value: s, unit: 'seconds' };
+  }
+  function applyDelayToSeconds() {
+	const vEl = document.getElementById('delayValue');
+	const uEl = document.getElementById('delayUnit');
+	const sEl = document.getElementById('delaySeconds');
+	const pEl = document.getElementById('delaySecondsPreview');
+	const v = Math.max(0, Math.floor(Number((vEl && vEl.value) || 0)));
+	const u = (uEl && uEl.value) || 'seconds';
+	const sec = v * unitToSeconds(u);
+	if (sEl) sEl.value = String(sec);
+	if (pEl) pEl.textContent = String(sec);
+  }
+  function initDelayUI() {
+	const sEl = document.getElementById('delaySeconds');
+	const vEl = document.getElementById('delayValue');
+	const uEl = document.getElementById('delayUnit');
+	const pEl = document.getElementById('delaySecondsPreview');
+	const sec = Number((sEl && sEl.value) || 0);
+	const vu = secondsToValueUnit(sec);
+	if (vEl) vEl.value = String(vu.value);
+	if (uEl) uEl.value = vu.unit;
+	if (pEl) pEl.textContent = String(Math.max(0, Math.floor(sec)));
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+	const typeSel = document.getElementById("typeSel");
+	if (typeSel) typeSel.addEventListener("change", toggleSections);
+	toggleSections();
+	initDelayUI();
+	const vEl = document.getElementById('delayValue');
+	const uEl = document.getElementById('delayUnit');
+	if (vEl) vEl.addEventListener('input', applyDelayToSeconds);
+	if (uEl) uEl.addEventListener('change', applyDelayToSeconds);
+  });
+</script>
 
 {% endblock %}
