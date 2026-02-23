@@ -45,6 +45,7 @@ from db import (
 	get_pool,
 	
 	log_user_flow,
+	get_flows, 
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -209,14 +210,25 @@ def inline_club_button() -> InlineKeyboardMarkup:
 	)
 
 
-def inline_lessons_menu() -> InlineKeyboardMarkup:
-	buttons = []
+async def inline_lessons_menu() -> InlineKeyboardMarkup:
+	flows = await get_flows()
 	
-	for i in range(1, 11):  # ← теперь 10 уроков
+	# берём только dayX
+	lesson_flows = [
+		f for f in flows
+		if f.startswith("day") and f[3:].isdigit()
+	]
+	
+	# сортируем по номеру дня
+	lesson_flows.sort(key=lambda x: int(x.replace("day", "")))
+	
+	buttons = []
+	for f in lesson_flows:
+		num = int(f.replace("day", ""))
 		buttons.append([
 			InlineKeyboardButton(
-				text=f"🔵 День {i}",
-				callback_data=f"lesson:day{i}"
+				text=f"🔵 День {num}",
+				callback_data=f"lesson:{f}"
 			)
 		])
 	
@@ -556,31 +568,59 @@ async def render_flow(chat_id: int, flow: str):
 			if file_path:
 				await send_attachment(chat_id, file_path, file_kind, file_name)
 
-			# 3) GATE
-			next_flow = (block.get("gate_next_flow") or "").strip()
-			if next_flow:
+			# 3) MULTI-GATE SUPPORT
+			gate_options_raw = (block.get("gate_options") or "").strip()
+			single_next_flow = (block.get("gate_next_flow") or "").strip()
+			
+			buttons = []
+			block_id = int(block.get("id") or 0)
+			prompt_text = (block.get("gate_prompt_text") or "").strip() or " "
+			
+			# 🔹 Multi-gate через JSON
+			if gate_options_raw:
+				try:
+					opts = json.loads(gate_options_raw)
+					for opt in opts:
+						text = (opt.get("text") or "").strip()
+						flow = (opt.get("flow") or "").strip()
+						if text and flow:
+							buttons.append([
+								InlineKeyboardButton(
+									text=text,
+									callback_data=f"multigate:{chat_id}:{block_id}:{flow}"
+								)
+							])
+				except Exception:
+					pass
+			
+			# 🔹 Старый обычный gate
+			elif single_next_flow:
+				btn_text = (block.get("gate_button_text") or "").strip() or "Дальше"
+				buttons.append([
+					InlineKeyboardButton(
+						text=btn_text,
+						callback_data=_gate_cb(chat_id, block_id, single_next_flow)
+					)
+				])
+			
+			# Если есть кнопки — останавливаем flow
+			if buttons:
+				reminder_seconds = int(block.get("gate_reminder_seconds") or 0)
+				if block_id > 0 and reminder_seconds > 0:
+					await _schedule_gate_reminder(
+						chat_id,
+						block_id,
+						"MULTI",
+						reminder_seconds
+					)
+		
 				if delay > 0:
 					await asyncio.sleep(delay)
-
-				btn_text = (block.get("gate_button_text") or "").strip() or "Дальше"
-				prompt_text = (block.get("gate_prompt_text") or "").strip() or " "
-				rem_sec = int(block.get("gate_reminder_seconds") or 0)
-				block_id = int(block.get("id") or 0)
-
-				if rem_sec > 0 and block_id > 0:
-					await _schedule_gate_reminder(chat_id, block_id, next_flow, rem_sec)
-
+		
 				await bot.send_message(
 					chat_id,
 					prompt_text,
-					reply_markup=InlineKeyboardMarkup(
-						inline_keyboard=[[
-							InlineKeyboardButton(
-								text=btn_text,
-								callback_data=_gate_cb(chat_id, block_id, next_flow)
-							)
-						]]
-					)
+					reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
 				)
 				return
 
@@ -719,35 +759,49 @@ async def _execute_job_and_mark_done(jid: int, uid: int, job_key: str) -> None:
 				if len(parts) == 3:
 					block_id = int(parts[1])
 					next_flow = parts[2].strip()
-
+		
 					if block_id > 0 and await is_gate_pressed(uid, block_id):
 						pass
 					else:
-						btn_text = "Дальше"
-						text = " "
 						try:
 							b = await get_block(block_id)
-							if b:
-								custom = (b.get("gate_reminder_text") or "").strip()
-								if custom:
-									text = custom
-								bt = (b.get("gate_button_text") or "").strip()
-								if bt:
-									btn_text = bt
 						except Exception:
-							pass
-
+							b = None
+		
+						if not b:
+							return
+		
+						gate_options_raw = (b.get("gate_options") or "").strip()
+						buttons = []
+		
+						if gate_options_raw:
+							try:
+								opts = json.loads(gate_options_raw)
+								for opt in opts:
+									text = (opt.get("text") or "").strip()
+									flow = (opt.get("flow") or "").strip()
+									if text and flow:
+										buttons.append([
+											InlineKeyboardButton(
+												text=text,
+												callback_data=f"multigate:{uid}:{block_id}:{flow}"
+											)
+										])
+							except Exception:
+								pass
+						else:
+							btn_text = (b.get("gate_button_text") or "").strip() or "Дальше"
+							buttons.append([
+								InlineKeyboardButton(
+									text=btn_text,
+									callback_data=_gate_cb(uid, block_id, next_flow)
+								)
+							])
+		
 						await bot.send_message(
 							uid,
-							text,
-							reply_markup=InlineKeyboardMarkup(
-								inline_keyboard=[[
-									InlineKeyboardButton(
-										text=btn_text,
-										callback_data=_gate_cb(uid, block_id, next_flow)
-									)
-								]]
-							)
+							(b.get("gate_reminder_text") or " "),
+							reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
 						)
 
 		finally:
@@ -848,7 +902,10 @@ async def cmd_lessons(message: Message):
 	if not await is_lessons_unlocked(message.from_user.id):
 		await message.answer("🔒 Уроки откроются после полного прохождения курса.")
 		return
-	await message.answer("📚 <b>Уроки</b>\nВыбери день:", reply_markup=inline_lessons_menu())
+	await message.answer(
+		"📚 <b>Уроки</b>\nВыбери день:",
+		reply_markup=await inline_lessons_menu()
+	)
 
 
 @dp.message(Command("faq"))
@@ -952,6 +1009,39 @@ async def cb_gate_next(call: CallbackQuery):
 
 	await call.answer()
 	await render_flow(target_uid, next_flow)
+	
+@dp.callback_query(F.data.startswith("multigate:"))
+async def cb_multigate(call: CallbackQuery):
+	try:
+		_, uid_s, block_id_s, flow = call.data.split(":", 3)
+		target_uid = int(uid_s)
+		block_id = int(block_id_s)
+		flow = (flow or "").strip()
+	except Exception:
+		return
+	
+	if call.from_user.id != target_uid:
+		await call.answer("Это не для тебя", show_alert=True)
+		return
+	
+		# отметить что gate нажат
+	if block_id > 0:
+		try:
+			await mark_gate_pressed(target_uid, block_id)
+		except Exception:
+			pass
+	
+			# удалить reminder job
+		try:
+			await mark_job_done_by_user_flow(
+				target_uid,
+				_job_gate(block_id, "MULTI")
+			)
+		except Exception:
+			pass
+	
+	await call.answer()
+	await render_flow(target_uid, flow)
 
 
 @dp.message()
@@ -959,6 +1049,8 @@ async def any_message(message: Message):
 	if message.text and message.text.startswith("/"):
 		return
 	await inc_message(message.from_user.id, message.from_user.username or "")
+	
+
 
 
 # ─────────────────────────────────────────────────────────────
