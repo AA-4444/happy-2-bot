@@ -2,168 +2,149 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
 <style>
-  :root {
-	--bg: #f5f6f8;
-	--bg-card: #ffffff;
-	--bg-muted: #f0f1f4;
-	--bg-hover: #f7f8fa;
-	--border: #e2e4ea;
-	--text: #1a1d24;
-	--text-sec: #5f6672;
-	--text-muted: #8b919d;
-	--primary: #2563eb;
-	--primary-hover: #1d4ed8;
-	--primary-dim: rgba(37,99,235,0.08);
-	--green: #16a34a;
-	--green-dim: rgba(22,163,74,0.1);
-	--green-border: #bbf7d0;
-	--orange: #ea580c;
-	--orange-dim: rgba(234,88,12,0.1);
-	--red: #dc2626;
-	--red-dim: rgba(220,38,38,0.08);
-	--red-border: #fecaca;
-	--blue: #2563eb;
-	--blue-dim: rgba(37,99,235,0.08);
-	--purple: #7c3aed;
-	--purple-dim: rgba(124,58,237,0.08);
-	--radius: 8px;
-	--shadow: 0 1px 3px rgba(0,0,0,0.06);
-	--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-	--mono: 'JetBrains Mono', monospace;
+  /* Edit page — works WITH base.html variables */
+  .edit-header {
+	display:flex; align-items:center; justify-content:space-between;
+	margin-bottom:24px;
+  }
+  .edit-header h1 { font-size:18px; font-weight:600; }
+
+  .field-label {
+	font-size:11px; color:var(--muted); text-transform:uppercase;
+	letter-spacing:0.04em; font-weight:600; display:block; margin-bottom:6px;
+  }
+  .field-hint { font-size:11px; color:var(--muted2); margin-top:5px; }
+
+  /* Override base.html input sizing */
+  .edit-form input[type="text"],
+  .edit-form input[type="number"],
+  .edit-form select {
+	width:100% !important;
+	height:40px !important;
+	padding:0 12px !important;
+	font-size:14px !important;
+  }
+  .edit-form textarea {
+	width:100% !important;
+	min-height:140px !important;
+	padding:12px !important;
+	font-size:14px !important;
+	line-height:1.6 !important;
+	resize:vertical !important;
+  }
+  .edit-form input[type="file"] {
+	border:none !important;
+	background:none !important;
+	height:auto !important;
+	padding:0 !important;
+	color:var(--muted) !important;
+	font-size:13px !important;
+  }
+  .edit-form input[type="checkbox"] {
+	width:16px !important;
+	height:16px !important;
+	border:none !important;
+	background:none !important;
   }
 
-  @media (prefers-color-scheme: dark) {
-	:root {
-	  --bg: #0f1117;
-	  --bg-card: #1a1d27;
-	  --bg-muted: #1f2230;
-	  --bg-hover: #22252f;
-	  --border: #2d3140;
-	  --text: #e4e6eb;
-	  --text-sec: #9ca3af;
-	  --text-muted: #6b7280;
-	  --primary: #3b82f6;
-	  --primary-hover: #2563eb;
-	  --primary-dim: rgba(59,130,246,0.12);
-	  --green-dim: rgba(22,163,74,0.15);
-	  --green-border: #166534;
-	  --orange-dim: rgba(234,88,12,0.15);
-	  --red-dim: rgba(220,38,38,0.15);
-	  --red-border: #991b1b;
-	  --blue-dim: rgba(59,130,246,0.12);
-	  --purple-dim: rgba(124,58,237,0.12);
-	  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-	}
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; line-height:1.5; }
-  code, .mono { font-family:var(--mono); }
-
-  .edit-wrap { max-width:900px; margin:0 auto; padding:24px 16px; }
-
-  /* Card */
-  .card {
-	background:var(--bg-card); border:1px solid var(--border);
-	border-radius:var(--radius); overflow:hidden; margin-bottom:24px;
-	box-shadow:var(--shadow);
-  }
-
-  /* Form inputs */
-  input[type="text"], input[type="number"], select, textarea {
-	height:36px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
-	padding:0 10px; font-size:13px; color:var(--text);
-	font-family:var(--font); outline:none; transition:border-color .15s;
-	width:100%;
-  }
-  textarea { height:auto; padding:10px; resize:vertical; }
-  input:focus, select:focus, textarea:focus { border-color:var(--primary); box-shadow:0 0 0 2px rgba(37,99,235,0.12); }
-  input::placeholder, textarea::placeholder { color:var(--text-muted); }
-  select { cursor:pointer; }
-  input[type="file"] { border:none; background:none; height:auto; padding:0; }
-
-  /* Labels */
-  .field-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; display:block; margin-bottom:5px; }
-  .field-hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
-
-  /* Buttons */
-  .btn {
-	display:inline-flex; align-items:center; gap:6px;
-	height:36px; padding:0 14px; border-radius:6px; font-size:13px; font-weight:500;
-	border:none; cursor:pointer; transition:all .15s; font-family:var(--font);
-	white-space:nowrap;
-  }
-  .btn i { font-size:12px; }
-  .btn-primary { background:var(--primary); color:#fff; }
-  .btn-primary:hover { background:var(--primary-hover); }
-  .btn-sm { height:30px; padding:0 10px; font-size:12px; }
-  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-sec); }
-  .btn-outline:hover { background:var(--bg-hover); border-color:var(--text-muted); }
-  .btn-link {
-	display:inline-flex; align-items:center; gap:6px;
-	font-size:13px; color:var(--text-sec); background:none; border:none;
-	cursor:pointer; text-decoration:none; transition:color .15s;
-  }
-  .btn-link:hover { color:var(--text); }
-
-  /* Section panels */
-  .section-panel {
-	background:var(--bg-muted); border:1px solid var(--border);
-	border-radius:var(--radius); padding:20px; margin-bottom:16px;
-  }
-  .section-title { font-size:14px; font-weight:600; margin-bottom:4px; }
-  .section-subtitle { font-size:12px; color:var(--text-muted); }
-
-  /* Error */
-  .error-box {
-	background:var(--red-dim); border:1px solid var(--red-border);
-	border-radius:var(--radius); padding:12px 16px; font-size:13px; color:var(--red);
-	margin-bottom:16px;
-  }
-
-  /* Grid helpers */
-  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
   @media(max-width:768px){
 	.grid-3, .grid-2 { grid-template-columns:1fr; }
   }
 
-  /* Header bar */
-  .edit-header {
-	display:flex; align-items:center; justify-content:space-between;
-	padding:16px 20px; background:var(--bg-card);
-	border:1px solid var(--border); border-radius:var(--radius);
-	margin-bottom:24px; box-shadow:var(--shadow);
+  .section-panel {
+	background:var(--panel2);
+	border:1px solid var(--border);
+	border-radius:16px;
+	padding:24px;
+	margin-top:20px;
   }
-  .edit-header h1 { font-size:18px; font-weight:600; }
+  .section-head {
+	display:flex; align-items:center; justify-content:space-between;
+	margin-bottom:16px;
+  }
+  .section-title {
+	font-size:15px; font-weight:600;
+	display:flex; align-items:center; gap:8px;
+  }
+  .section-title i { font-size:14px; color:var(--muted); }
+  .section-subtitle { font-size:12px; color:var(--muted2); }
 
-  /* Checkbox */
-  input[type="checkbox"] { accent-color:var(--primary); width:15px; height:15px; cursor:pointer; border:none; height:auto; }
-  .check-label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sec); cursor:pointer; }
+  .field-group { margin-bottom:16px; }
+  .field-group:last-child { margin-bottom:0; }
 
-  details summary { cursor:pointer; }
+  .error-box {
+	background:var(--dangerBg);
+	border:1px solid var(--dangerBorder);
+	border-radius:12px;
+	padding:12px 16px;
+	font-size:13px;
+	color:var(--dangerFg);
+	margin-bottom:20px;
+	display:flex; align-items:center; gap:8px;
+  }
+
+  .btn-edit {
+	display:inline-flex; align-items:center; gap:7px;
+	height:40px; padding:0 18px; border-radius:12px;
+	font-size:14px; font-weight:500; cursor:pointer;
+	transition:all .15s; white-space:nowrap;
+  }
+  .btn-edit i { font-size:12px; }
+  .btn-edit-primary {
+	background:var(--primaryBg) !important;
+	color:var(--primaryFg) !important;
+	border:none !important;
+  }
+  .btn-edit-primary:hover { opacity:.88; }
+  .btn-edit-outline {
+	background:var(--btnBg) !important;
+	color:var(--fg) !important;
+	border:1px solid var(--btnBorder) !important;
+  }
+  .btn-edit-outline:hover { background:var(--btnHover) !important; }
+  .btn-edit-link {
+	background:none !important; border:none !important;
+	color:var(--muted) !important; font-size:13px;
+	display:inline-flex; align-items:center; gap:6px;
+	cursor:pointer; padding:0;
+  }
+  .btn-edit-link:hover { color:var(--fg) !important; }
+
+  .check-label {
+	display:inline-flex; align-items:center; gap:7px;
+	font-size:13px; color:var(--muted); cursor:pointer;
+  }
+
+  .delay-preview {
+	font-size:12px; color:var(--muted2); margin-top:6px;
+  }
+  .delay-preview code { color:var(--fg); }
+
+  details summary {
+	cursor:pointer; font-size:12px; color:var(--muted2);
+	padding:4px 0;
+  }
 </style>
 
-<div class="edit-wrap">
+<div class="edit-form">
 
   <!-- Header -->
   <div class="edit-header">
 	<h1>
-	  <i class="fa-solid fa-pen-to-square" style="font-size:16px;color:var(--primary);margin-right:8px;"></i>
+	  <i class="fa-solid fa-pen-to-square" style="font-size:16px;color:var(--muted);margin-right:6px;"></i>
 	  {{ "New block" if is_new else "Edit block" }}
 	</h1>
-	<a href="/flow/{{ block.get('flow','') }}" class="btn-link">
-	  <i class="fa-solid fa-arrow-left" style="font-size:11px"></i> back
+	<a href="/flow/{{ block.get('flow','') }}" class="btn-edit-link">
+	  <i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> back
 	</a>
   </div>
 
   {% if error %}
 	<div class="error-box">
-	  <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>{{ error }}
+	  <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
 	</div>
   {% endif %}
 
@@ -175,18 +156,22 @@
 	<input type="hidden" id="delaySeconds" name="delay_seconds" value="{{ block.get('delay', 1.0) }}" />
 
 	<!-- Basic fields -->
-	<div class="card" style="padding:20px;">
-	  <div class="grid-3" style="margin-bottom:12px;">
+	<div class="section-panel">
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-sliders"></i> Basic settings</div>
+	  </div>
+
+	  <div class="grid-3 field-group">
 		<div>
-		  <label class="field-label">Flow</label>
-		  <input name="flow" value="{{ block.get('flow','') }}" />
+		  <label class="field-label"><i class="fa-solid fa-diagram-project" style="margin-right:4px;"></i> Flow</label>
+		  <input name="flow" type="text" value="{{ block.get('flow','') }}" />
 		</div>
 		<div>
-		  <label class="field-label">Position</label>
+		  <label class="field-label"><i class="fa-solid fa-list-ol" style="margin-right:4px;"></i> Position</label>
 		  <input name="position" type="number" value="{{ block.get('position', 1) }}" />
 		</div>
 		<div>
-		  <label class="field-label">Type</label>
+		  <label class="field-label"><i class="fa-solid fa-shapes" style="margin-right:4px;"></i> Type</label>
 		  <select id="typeSel" name="type">
 			{% set cur_type = block.get('type','text') %}
 			{% for t in ["text","circle","video","buttons"] %}
@@ -196,90 +181,97 @@
 		</div>
 	  </div>
 
-	  <div class="grid-3">
+	  <div class="grid-3 field-group">
 		<div>
-		  <label class="field-label">Title <span style="font-weight:400;text-transform:none;">(для video/buttons)</span></label>
-		  <input name="title" value="{{ block.get('title','') }}" />
+		  <label class="field-label"><i class="fa-solid fa-heading" style="margin-right:4px;"></i> Title <span style="font-weight:400;text-transform:none;">(для video/buttons)</span></label>
+		  <input name="title" type="text" value="{{ block.get('title','') }}" />
 		</div>
 		<div>
-		  <label class="field-label">Delay</label>
-		  <div class="field-hint" style="margin-top:-2px;margin-bottom:6px;">можно ставить минуты/часы/дни (в базу уйдёт в секундах)</div>
+		  <label class="field-label"><i class="fa-solid fa-clock" style="margin-right:4px;"></i> Delay</label>
+		  <div class="field-hint" style="margin-top:-2px;margin-bottom:8px;">можно ставить минуты/часы/дни (в базу уйдёт в секундах)</div>
 		  <div style="display:flex;align-items:center;gap:8px;">
-			<input id="delayValue" type="number" min="0" step="1" value="" placeholder="1" style="width:80px;" />
-			<select id="delayUnit" style="width:auto;">
+			<input id="delayValue" type="number" min="0" step="1" value="" placeholder="1" style="width:80px!important;flex:none!important;" />
+			<select id="delayUnit" style="width:auto!important;flex:none!important;">
 			  <option value="seconds">seconds</option>
 			  <option value="minutes">minutes</option>
 			  <option value="hours">hours</option>
 			  <option value="days">days</option>
 			</select>
-			<button type="button" class="btn btn-sm btn-outline" onclick="applyDelayToSeconds()" title="Синхронизировать delay → delay_seconds">
-			  Apply
+			<button type="button" class="btn-edit btn-edit-outline" onclick="applyDelayToSeconds()" title="Синхронизировать delay → delay_seconds" style="height:36px;padding:0 12px;">
+			  <i class="fa-solid fa-rotate"></i> Apply
 			</button>
 		  </div>
-		  <div class="field-hint" style="margin-top:6px;">
-			Сейчас: <code id="delaySecondsPreview" class="mono" style="color:var(--text);">{{ block.get('delay', 1.0) }}</code> sec
+		  <div class="delay-preview">
+			Сейчас: <code id="delaySecondsPreview">{{ block.get('delay', 1.0) }}</code> sec
 		  </div>
 		</div>
 		<div>
-		  <label class="field-label">is_active (0/1)</label>
+		  <label class="field-label"><i class="fa-solid fa-toggle-on" style="margin-right:4px;"></i> is_active (0/1)</label>
 		  <input name="is_active" type="number" value="{{ block.get('is_active', 1) }}" />
 		</div>
 	  </div>
 	</div>
 
 	<!-- TEXT -->
-	<div class="card" style="padding:20px;" id="secText">
-	  <label class="field-label"><i class="fa-solid fa-align-left" style="margin-right:4px;font-size:11px;"></i>Text</label>
+	<div class="section-panel" id="secText">
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-align-left"></i> Text</div>
+	  </div>
 	  <textarea name="text" rows="6">{{ block.get('text','') }}</textarea>
 	</div>
 
 	<!-- MEDIA -->
-	<div class="card" style="padding:20px;" id="secMedia">
+	<div class="section-panel" id="secMedia">
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-photo-film"></i> Media</div>
+	  </div>
 	  <div class="grid-2">
 		<div>
-		  <label class="field-label"><i class="fa-solid fa-circle-play" style="margin-right:4px;font-size:11px;"></i>circle_path (или загрузить файл)</label>
-		  <input name="circle_path" value="{{ block.get('circle','') }}" />
-		  <div style="margin-top:8px;">
-			<input type="file" name="circle_file" style="font-size:13px;color:var(--text-sec);" />
+		  <label class="field-label"><i class="fa-solid fa-circle-play" style="margin-right:4px;"></i> circle_path (или загрузить файл)</label>
+		  <input name="circle_path" type="text" value="{{ block.get('circle','') }}" />
+		  <div style="margin-top:10px;">
+			<input type="file" name="circle_file" />
 		  </div>
 		  {% if block.get('circle') %}
-			<div class="field-hint">current: {{ block.get('circle') }}</div>
+			<div class="field-hint"><i class="fa-solid fa-file" style="margin-right:4px;"></i> current: {{ block.get('circle') }}</div>
 		  {% endif %}
 		</div>
 		<div>
-		  <label class="field-label"><i class="fa-solid fa-video" style="margin-right:4px;font-size:11px;"></i>video_url</label>
-		  <input name="video_url" value="{{ block.get('video','') }}" />
+		  <label class="field-label"><i class="fa-solid fa-video" style="margin-right:4px;"></i> video_url</label>
+		  <input name="video_url" type="text" value="{{ block.get('video','') }}" />
 		</div>
 	  </div>
 	</div>
 
 	<!-- ATTACHMENT -->
 	<div class="section-panel">
-	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-		<div class="section-title"><i class="fa-solid fa-paperclip" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Attachment</div>
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-paperclip"></i> Attachment</div>
 		<span class="section-subtitle">любой файл (pdf/docx/png/zip и т.д.)</span>
 	  </div>
 	  <div class="grid-2">
 		<div>
-		  <label class="field-label">Upload file</label>
-		  <input type="file" name="attach_file" style="font-size:13px;color:var(--text-sec);margin-top:4px;" />
+		  <label class="field-label"><i class="fa-solid fa-upload" style="margin-right:4px;"></i> Upload file</label>
+		  <input type="file" name="attach_file" />
 		  <div class="field-hint">
-			Если загрузишь — файл сохранится в <code class="mono">media/</code> и будет отправляться ботом в этом блоке.
+			Если загрузишь — файл сохранится в <code>media/</code> и будет отправляться ботом в этом блоке.
 		  </div>
 		</div>
 		<div>
-		  <label class="field-label">Current</label>
+		  <label class="field-label"><i class="fa-solid fa-file-circle-check" style="margin-right:4px;"></i> Current</label>
 		  <div style="margin-top:4px;font-size:13px;">
 			{% if block.get('file_path') %}
-			  <div class="field-hint">kind: {{ block.get('file_kind','') }}</div>
-			  <a style="color:var(--primary);text-decoration:underline;" href="{{ block.get('file_path') }}" target="_blank">{{ block.get('file_path') }}</a>
+			  <div class="field-hint" style="margin-top:0;">kind: {{ block.get('file_kind','') }}</div>
+			  <a style="color:var(--fg);text-decoration:underline;" href="{{ block.get('file_path') }}" target="_blank">
+				<i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;margin-right:4px;"></i>{{ block.get('file_path') }}
+			  </a>
 			{% else %}
-			  <span style="color:var(--text-muted);">—</span>
+			  <span style="color:var(--muted2);">—</span>
 			{% endif %}
 		  </div>
-		  <div style="margin-top:10px;">
-			<button type="button" class="btn btn-sm btn-outline" onclick="clearAttachment()">
-			  <i class="fa-solid fa-xmark" style="font-size:11px;"></i> Clear attachment
+		  <div style="margin-top:12px;">
+			<button type="button" class="btn-edit btn-edit-outline" style="height:34px;padding:0 12px;" onclick="clearAttachment()">
+			  <i class="fa-solid fa-xmark"></i> Clear attachment
 			</button>
 		  </div>
 		</div>
@@ -288,17 +280,18 @@
 
 	<!-- NEXT LESSON GATE -->
 	<div class="section-panel">
-	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-		<div class="section-title"><i class="fa-solid fa-door-open" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Next lesson gate</div>
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-door-open"></i> Next lesson gate</div>
 		<span class="section-subtitle">кнопка "Готов…" + напоминание</span>
 	  </div>
-	  <div class="field-hint" style="margin-bottom:14px;">
+	  <div class="field-hint" style="margin-bottom:16px;">
 		Если заполнить <b>Next flow</b> — бот после этого блока остановится и покажет кнопку.
 		По нажатию — запустит выбранный flow.
 	  </div>
-	  <div class="grid-2" style="margin-bottom:12px;">
+
+	  <div class="grid-2 field-group">
 		<div>
-		  <label class="field-label">Next flow (что запускать после кнопки)</label>
+		  <label class="field-label"><i class="fa-solid fa-forward" style="margin-right:4px;"></i> Next flow (что запускать после кнопки)</label>
 		  {% if flows is defined and flows %}
 			<select name="gate_next_flow">
 			  <option value="">— disabled —</option>
@@ -307,30 +300,32 @@
 			  {% endfor %}
 			</select>
 		  {% else %}
-			<input name="gate_next_flow" value="{{ block.get('gate_next_flow','') }}" placeholder="например: day2" />
+			<input name="gate_next_flow" type="text" value="{{ block.get('gate_next_flow','') }}" placeholder="например: day2" />
 			<div class="field-hint">
-			  (чтобы был dropdown — нужно передать <code class="mono">flows</code> в шаблон из crm.py)
+			  (чтобы был dropdown — нужно передать <code>flows</code> в шаблон из crm.py)
 			</div>
 		  {% endif %}
 		</div>
 		<div>
-		  <label class="field-label">Button text</label>
-		  <input name="gate_button_text" value="{{ block.get('gate_button_text') or '✅ Готов к следующему уроку' }}" />
+		  <label class="field-label"><i class="fa-solid fa-square-check" style="margin-right:4px;"></i> Button text</label>
+		  <input name="gate_button_text" type="text" value="{{ block.get('gate_button_text') or '✅ Готов к следующему уроку' }}" />
 		</div>
 	  </div>
-	  <div style="margin-bottom:12px;">
-		<label class="field-label">Text above button (editable)</label>
-		<input name="gate_prompt_text" value="{{ block.get('gate_prompt_text','') }}" placeholder="👇 Нажми кнопку, чтобы перейти дальше" />
+
+	  <div class="field-group">
+		<label class="field-label"><i class="fa-solid fa-message" style="margin-right:4px;"></i> Text above button (editable)</label>
+		<input name="gate_prompt_text" type="text" value="{{ block.get('gate_prompt_text','') }}" placeholder="👇 Нажми кнопку, чтобы перейти дальше" />
 		<div class="field-hint">Если пусто — бот использует дефолтный текст.</div>
 	  </div>
-	  <div class="grid-3" style="margin-bottom:12px;">
+
+	  <div class="grid-3 field-group">
 		<div>
-		  <label class="field-label">Reminder</label>
+		  <label class="field-label"><i class="fa-solid fa-bell" style="margin-right:4px;"></i> Reminder</label>
 		  <input name="gate_reminder_value" type="number" min="0" value="{{ block.get('gate_reminder_value', 0) }}" placeholder="0" />
 		  <div class="field-hint">0 = без напоминания</div>
 		</div>
 		<div>
-		  <label class="field-label">Unit</label>
+		  <label class="field-label"><i class="fa-solid fa-stopwatch" style="margin-right:4px;"></i> Unit</label>
 		  {% set u = (block.get('gate_reminder_unit') or 'hours') %}
 		  <select name="gate_reminder_unit">
 			<option value="minutes" {% if u=='minutes' %}selected{% endif %}>minutes</option>
@@ -339,61 +334,64 @@
 		  </select>
 		</div>
 		<div>
-		  <label class="field-label">Reminder text (optional)</label>
-		  <input name="gate_reminder_text" value="{{ block.get('gate_reminder_text','') }}" placeholder="Например: Ты готов продолжить? 🙂" />
+		  <label class="field-label"><i class="fa-solid fa-comment-dots" style="margin-right:4px;"></i> Reminder text (optional)</label>
+		  <input name="gate_reminder_text" type="text" value="{{ block.get('gate_reminder_text','') }}" placeholder="Например: Ты готов продолжить? 🙂" />
 		</div>
 	  </div>
-	  <div style="display:flex;align-items:center;gap:10px;">
-		<button type="button" class="btn btn-sm btn-outline" onclick="clearGate()">
-		  <i class="fa-solid fa-ban" style="font-size:11px;"></i> Disable gate
+
+	  <div style="display:flex;align-items:center;gap:12px;">
+		<button type="button" class="btn-edit btn-edit-outline" style="height:34px;padding:0 12px;" onclick="clearGate()">
+		  <i class="fa-solid fa-ban"></i> Disable gate
 		</button>
-		<span class="field-hint">Disabled = поле Next flow станет пустым (gate выключен).</span>
+		<span class="field-hint" style="margin-top:0;">Disabled = поле Next flow станет пустым (gate выключен).</span>
 	  </div>
 	</div>
 
 	<!-- BUTTONS EASY MODE -->
 	<div class="section-panel" id="secButtons">
-	  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-		<div class="section-title"><i class="fa-solid fa-grip" style="font-size:13px;color:var(--primary);margin-right:6px;"></i>Buttons</div>
+	  <div class="section-head">
+		<div class="section-title"><i class="fa-solid fa-grip"></i> Buttons</div>
 		<span class="section-subtitle">до 3 кнопок</span>
 	  </div>
-	  <div class="grid-2" style="margin-bottom:12px;">
+	  <div class="grid-2 field-group">
 		<div>
 		  <label class="field-label">Button 1 text</label>
-		  <input name="btn1_text" value="{{ block.get('btn1_text','') }}" placeholder="Например: Перейти на сайт" />
+		  <input name="btn1_text" type="text" value="{{ block.get('btn1_text','') }}" placeholder="Например: Перейти на сайт" />
 		</div>
 		<div>
 		  <label class="field-label">Button 1 url</label>
-		  <input name="btn1_url" value="{{ block.get('btn1_url','') }}" placeholder="https://..." />
+		  <input name="btn1_url" type="text" value="{{ block.get('btn1_url','') }}" placeholder="https://..." />
 		</div>
 		<div>
 		  <label class="field-label">Button 2 text</label>
-		  <input name="btn2_text" value="{{ block.get('btn2_text','') }}" placeholder="(опционально)" />
+		  <input name="btn2_text" type="text" value="{{ block.get('btn2_text','') }}" placeholder="(опционально)" />
 		</div>
 		<div>
 		  <label class="field-label">Button 2 url</label>
-		  <input name="btn2_url" value="{{ block.get('btn2_url','') }}" placeholder="https://..." />
+		  <input name="btn2_url" type="text" value="{{ block.get('btn2_url','') }}" placeholder="https://..." />
 		</div>
 		<div>
 		  <label class="field-label">Button 3 text</label>
-		  <input name="btn3_text" value="{{ block.get('btn3_text','') }}" placeholder="(опционально)" />
+		  <input name="btn3_text" type="text" value="{{ block.get('btn3_text','') }}" placeholder="(опционально)" />
 		</div>
 		<div>
 		  <label class="field-label">Button 3 url</label>
-		  <input name="btn3_url" value="{{ block.get('btn3_url','') }}" placeholder="https://..." />
+		  <input name="btn3_url" type="text" value="{{ block.get('btn3_url','') }}" placeholder="https://..." />
 		</div>
 	  </div>
 	  <details>
-		<summary style="font-size:12px;color:var(--text-muted);">Advanced (JSON)</summary>
+		<summary><i class="fa-solid fa-code" style="margin-right:4px;font-size:11px;"></i> Advanced (JSON)</summary>
 		<textarea name="buttons_json" rows="4" style="margin-top:8px;">{{ block.get('buttons_json','') or block.get('buttons','') }}</textarea>
 		<div class="field-hint">Если заполнено — будет использован JSON. Иначе берём кнопки сверху.</div>
 	  </details>
 	</div>
 
 	<!-- Save -->
-	<button type="submit" class="btn btn-primary" style="margin-top:8px;">
-	  <i class="fa-solid fa-floppy-disk"></i> Save
-	</button>
+	<div style="margin-top:24px;">
+	  <button type="submit" class="btn-edit btn-edit-primary">
+		<i class="fa-solid fa-floppy-disk"></i> Save
+	  </button>
+	</div>
   </form>
 </div>
 
@@ -481,3 +479,4 @@
 </script>
 
 {% endblock %}
+
