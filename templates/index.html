@@ -374,7 +374,7 @@
 	  </div>
 	</div>
 
-	<form method="POST" action="/add_broadcast">
+	<form method="POST" action="/broadcast/new">
 	  <div class="form-row">
 		<div class="form-group grow">
 		  <span class="form-label">Title</span>
@@ -476,12 +476,12 @@
 			  </div>
 			</div>
 			<div class="item-actions">
-			  <form method="POST" action="/toggle_broadcast/{{ b.id }}" style="display:inline">
+			  <form method="POST" action="/broadcast/{{ b.id }}/toggle" style="display:inline">
 				<button type="submit" class="pill {% if b_active|int == 1 %}pill-on{% else %}pill-off{% endif %}" style="border:none;cursor:pointer;">
 				  {% if b_active|int == 1 %}ENABLED{% else %}DISABLED{% endif %}
 				</button>
 			  </form>
-			  <form method="POST" action="/delete_broadcast/{{ b.id }}" style="display:inline" onsubmit="return confirm('Delete this broadcast?')">
+			  <form method="POST" action="/broadcast/{{ b.id }}/delete" style="display:inline" onsubmit="return confirm('Delete this broadcast?')">
 				<button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash-can"></i> Delete</button>
 			  </form>
 			</div>
@@ -508,7 +508,7 @@
 	  {% set tr = (triggers[f] if (triggers is defined and f in triggers) else None) %}
 	  {% set enabled = (tr.enabled if tr and tr.enabled is defined else false) %}
 	  {% set unit = (tr.offset_unit if tr and tr.offset_unit is defined else "minutes") %}
-	  <form method="POST" action="/save_trigger/{{ f }}">
+	  <form method="POST" action="/flow/{{ f }}/trigger">
 		<div class="seq-row">
 		  <div class="seq-left">
 			<span class="badge" style="font-size:13px;font-weight:500;">{{ f }}</span>
@@ -542,7 +542,7 @@
 	  </div>
 	</div>
 
-	<form method="POST" action="/add_action">
+	<form method="POST" action="/flow/action/upsert">
 	  <div class="form-row">
 		<div class="form-group">
 		  <span class="form-label">After</span>
