@@ -239,23 +239,39 @@ def build_buttons_kb(buttons_json: Optional[str]) -> Optional[InlineKeyboardMark
 	s = (buttons_json or "").strip()
 	if not s:
 		return None
-
+	
 	try:
 		btns = json.loads(s)
 		if not isinstance(btns, list):
 			return None
-
+	
 		rows = []
 		for b in btns:
 			if not isinstance(b, dict):
 				continue
+	
 			text = (b.get("text") or "").strip()
 			url = (b.get("url") or "").strip()
+	
 			if not text or not url:
 				continue
-			rows.append([InlineKeyboardButton(text=text, url=url)])
-
+	
+			# 🔥 если это переход к flow
+			if url.startswith("flow:"):
+				flow = url.replace("flow:", "").strip()
+				rows.append([
+					InlineKeyboardButton(
+						text=text,
+						callback_data=f"manualflow:{flow}"
+					)
+				])
+			else:
+				rows.append([
+					InlineKeyboardButton(text=text, url=url)
+				])
+	
 		return InlineKeyboardMarkup(inline_keyboard=rows) if rows else None
+	
 	except Exception:
 		return None
 
@@ -1043,7 +1059,12 @@ async def cb_multigate(call: CallbackQuery):
 	await call.answer()
 	await render_flow(target_uid, flow)
 
-
+@dp.callback_query(F.data.startswith("manualflow:"))
+async def cb_manual_flow(call: CallbackQuery):
+	await call.answer()
+	flow = call.data.split(":", 1)[1].strip()
+	await render_flow(call.from_user.id, flow)
+	
 @dp.message()
 async def any_message(message: Message):
 	if message.text and message.text.startswith("/"):
