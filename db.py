@@ -795,39 +795,52 @@ async def delete_flow_actions_for_flow(flow: str) -> None:
 		WHERE after_flow=$1 OR target_flow=$1;
 		""", flow)
 
-
 # ===================== BOT ANALYTICS =====================
-
-async def inc_start(user_id: int, username: Optional[str]):
+		
+async def inc_start(user_id: int, username: str | None):
 	now = int(time.time())
-	username = (username or "").strip()
-
+		
 	pool = await get_pool()
 	async with pool.acquire() as conn:
 		await conn.execute("""
-		INSERT INTO bot_users(user_id, username, first_seen_ts, last_seen_ts, starts_count, messages_count)
-		VALUES ($1, $2, $3, $4, 1, 0)
-		ON CONFLICT (user_id) DO UPDATE SET
-			username=EXCLUDED.username,
-			last_seen_ts=EXCLUDED.last_seen_ts,
-			starts_count=bot_users.starts_count + 1;
-		""", int(user_id), username, now, now)
-
-
-async def inc_message(user_id: int, username: Optional[str]):
+		   INSERT INTO bot_users (
+			   user_id,
+			   username,
+			   first_seen_ts,
+			   last_seen_ts,
+			   starts_count,
+			   messages_count
+			)
+			VALUES ($1, $2, $3, $3, 1, 0)
+			ON CONFLICT (user_id)
+			DO UPDATE SET
+				username = EXCLUDED.username,
+				last_seen_ts = $3,
+				starts_count = bot_users.starts_count + 1
+		""", int(user_id), username, now)
+		
+		
+async def inc_message(user_id: int, username: str | None):
 	now = int(time.time())
-	username = (username or "").strip()
-
+		
 	pool = await get_pool()
 	async with pool.acquire() as conn:
 		await conn.execute("""
-		INSERT INTO bot_users(user_id, username, first_seen_ts, last_seen_ts, starts_count, messages_count)
-		VALUES ($1, $2, $3, $4, 0, 1)
-		ON CONFLICT (user_id) DO UPDATE SET
-			username=EXCLUDED.username,
-			last_seen_ts=EXCLUDED.last_seen_ts,
-			messages_count=bot_users.messages_count + 1;
-		""", int(user_id), username, now, now)
+		   INSERT INTO bot_users (
+			   user_id,
+			   username,
+			   first_seen_ts,
+			   last_seen_ts,
+			   starts_count,
+			   messages_count
+			)
+			VALUES ($1, $2, $3, $3, 0, 1)
+			ON CONFLICT (user_id)
+			DO UPDATE SET
+				username = EXCLUDED.username,
+				last_seen_ts = $3,
+				messages_count = bot_users.messages_count + 1
+		""", int(user_id), username, now)
 
 
 async def get_stats():
