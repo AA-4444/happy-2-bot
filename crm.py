@@ -151,6 +151,19 @@ async def index(request: Request, page: int = 1):
 	total_users = await get_users_count()
 	users = await get_users_paginated(PER_PAGE, offset)
 	
+	from datetime import datetime
+	
+	for u in users:
+		if u.get("first_seen_ts"):
+			u["first_seen"] = datetime.utcfromtimestamp(u["first_seen_ts"])
+		else:
+			u["first_seen"] = None
+	
+		if u.get("last_seen_ts"):
+			u["last_seen"] = datetime.utcfromtimestamp(u["last_seen_ts"])
+		else:
+			u["last_seen"] = None
+	
 	total_pages = max(1, math.ceil(total_users / PER_PAGE))
 
 	# ✅ flow modes
