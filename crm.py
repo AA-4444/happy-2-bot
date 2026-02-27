@@ -5,6 +5,7 @@ import uuid
 from typing import Optional
 from io import BytesIO
 from datetime import datetime
+import math
 
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse, StreamingResponse
@@ -133,10 +134,22 @@ def _clamp_int(v: int, lo: int, hi: int) -> int:
 # INDEX (FLOWS + STATS + USERS + TRIGGERS + MODES + ACTIONS + BROADCASTS)
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+async def index(request: Request, page: int = 1):
 	flows = await get_flows()
 	stats = await get_stats()
-	users = await get_users(200)
+	
+	
+	PER_PAGE = 50
+	
+	if page < 1:
+		page = 1
+	
+	offset = (page - 1) * PER_PAGE
+	
+	total_users = await get_users_count()
+	users = await get_users_paginated(PER_PAGE, offset)
+	
+	total_pages = max(1, math.ceil(total_users / PER_PAGE))
 
 	# ✅ flow modes
 	try:
@@ -251,6 +264,8 @@ async def index(request: Request):
 			"actions": actions,         # ✅ flow_actions для UI
 			"broadcasts": broadcasts,   # ✅ new recurring broadcasts
 			"flow_stats": flow_stats,
+			"page": page,
+			"total_pages": total_pages,
 		},
 	)
 

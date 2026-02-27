@@ -877,6 +877,35 @@ async def get_users(limit: int = 500):
 		for r in rows
 	]
 
+# ===================== USERS PAGINATION =====================
+
+async def get_users_paginated(limit: int, offset: int):
+	pool = await get_pool()
+	async with pool.acquire() as conn:
+		rows = await conn.fetch("""
+		SELECT user_id, username, first_seen_ts, last_seen_ts, starts_count, messages_count
+		FROM bot_users
+		ORDER BY last_seen_ts DESC
+		LIMIT $1 OFFSET $2;
+		""", int(limit), int(offset))
+
+	return [
+		{
+			"user_id": int(r["user_id"]),
+			"username": r["username"] or "",
+			"first_seen_ts": int(r["first_seen_ts"]),
+			"last_seen_ts": int(r["last_seen_ts"]),
+			"starts_count": int(r["starts_count"]),
+			"messages_count": int(r["messages_count"]),
+		}
+		for r in rows
+	]
+
+
+async def get_users_count() -> int:
+	pool = await get_pool()
+	async with pool.acquire() as conn:
+		return int(await conn.fetchval("SELECT COUNT(*) FROM bot_users;") or 0)
 
 # ===================== FLOW TRIGGERS =====================
 

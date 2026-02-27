@@ -182,13 +182,16 @@ async def unlock_lessons(user_id: int) -> None:
 # ─────────────────────────────────────────────────────────────
 # UI (✅ меню на русском + "Уроки" только после конца курса)
 
-def reply_main_menu(lessons_unlocked: bool) -> ReplyKeyboardMarkup:
+def reply_main_menu(_: bool) -> ReplyKeyboardMarkup:
 	rows = [
 		[KeyboardButton(text="❓ FAQ")],
-		[KeyboardButton(text="🌐 Сайт"), KeyboardButton(text="🏛️ Клуб Архитектура Счастья")],
+		[KeyboardButton(text="📖 Инструкция прохождения")],
+		[KeyboardButton(text="🌐 Сайт")],
+		[KeyboardButton(text="🎬 Все курсы")],
+		[KeyboardButton(text="🏛️ Клуб Архитектура Счастья")],
+		[KeyboardButton(text="🌟 Амбассадор счастья")],
 		[KeyboardButton(text="🆘 Поддержка")],
 	]
-	
 
 	return ReplyKeyboardMarkup(
 		keyboard=rows,
@@ -965,10 +968,10 @@ async def cmd_faq(message: Message):
 	
 	keyboard = InlineKeyboardMarkup(inline_keyboard=[
 		[InlineKeyboardButton(text="▶️ Начать с первого урока", callback_data="manualflow:day1")],
-		[InlineKeyboardButton(text="📥 Скачать план прохождения", url="https://your-link.com/plan.pdf")],
+		[InlineKeyboardButton(text="📥 Скачать план прохождения", url="https://docs.google.com/document/d/1U8cEF0wUadA9_ZKXoy8C26NFD51JyA4B3_WzYm11Nh0/edit?usp=sharing")],
 		[InlineKeyboardButton(text="🆘 Связаться с поддержкой", url="https://t.me/TataZakzheva")],
 		[InlineKeyboardButton(text="📝 Оставить заявку", url="https://t.me/TataZakzheva")],
-		[InlineKeyboardButton(text="📚 Все курсы", url="https://www.happi10.com")]
+		[InlineKeyboardButton(text="📚 Все курсы", url="https://www.youtube.com/playlist?list=PLx8sGGc1HRHhfFWBdW6-9C404nN7CoNFu")]
 	])
 	
 	await message.answer(text, reply_markup=keyboard)
@@ -1010,16 +1013,74 @@ async def btn_web(message: Message):
 	await cmd_web(message)
 
 
-@dp.message(F.text == "🏛️ Клуб Архитектура Счастья")
-async def btn_club(message: Message):
-	await inc_message(message.from_user.id, message.from_user.username or "")
-	await cmd_club(message)
-
 
 @dp.message(F.text == "🆘 Поддержка")
 async def btn_support(message: Message):
 	await inc_message(message.from_user.id, message.from_user.username or "")
 	await cmd_support(message)
+	
+@dp.message(F.text == "📖 Инструкция прохождения")
+async def btn_instruction(message: Message):
+	await inc_message(message.from_user.id, message.from_user.username or "")
+	await message.answer(
+			"📖 <b>Инструкция прохождения курса</b>",
+			reply_markup=InlineKeyboardMarkup(
+				inline_keyboard=[
+					[InlineKeyboardButton(
+						text="Открыть инструкцию",
+						url="https://docs.google.com/document/d/1U8cEF0wUadA9_ZKXoy8C26NFD51JyA4B3_WzYm11Nh0/edit?usp=sharing"
+					)]
+				]
+			)
+		)
+	
+	
+@dp.message(F.text == "🎬 Все курсы")
+async def btn_all_courses(message: Message):
+	await inc_message(message.from_user.id, message.from_user.username or "")
+	await message.answer(
+			"🎬 <b>Все курсы</b>",
+			reply_markup=InlineKeyboardMarkup(
+				inline_keyboard=[
+					[InlineKeyboardButton(
+						text="Открыть Playlist",
+						url="https://www.youtube.com/playlist?list=PLx8sGGc1HRHhfFWBdW6-9C404nN7CoNFu"
+					)]
+				]
+			)
+		)
+	
+	
+@dp.message(F.text == "🏛️ Клуб Архитектура Счастья")
+async def btn_club_new(message: Message):
+	await inc_message(message.from_user.id, message.from_user.username or "")
+	await message.answer(
+			"🏛️ <b>Клуб Архитектура Счастья</b>",
+			reply_markup=InlineKeyboardMarkup(
+				inline_keyboard=[
+					[InlineKeyboardButton(
+						text="Перейти в клуб",
+						url="https://www.happi10.com/club"
+					)]
+				]
+			)
+		)
+	
+	
+@dp.message(F.text == "🌟 Амбассадор счастья")
+async def btn_ambassador(message: Message):
+	await inc_message(message.from_user.id, message.from_user.username or "")
+	await message.answer(
+			"🌟 <b>Программа «Амбассадор счастья»</b>",
+			reply_markup=InlineKeyboardMarkup(
+				inline_keyboard=[
+					[InlineKeyboardButton(
+						text="Стать амбассадором",
+						url="https://www.happi10.com/ambassador"
+					)]
+				]
+			)
+		)
 
 
 @dp.callback_query(F.data.startswith("lesson:"))
