@@ -21,6 +21,8 @@ from db import (
 	get_blocks, get_block, create_block, update_block, delete_block,
 	next_position, swap_positions,
 	get_stats, get_users,
+	get_users_paginated,
+	get_users_count,
 	get_flow_triggers, set_flow_trigger, delete_flow_trigger,
 
 	# ✅ flow modes (off/manual/auto)
