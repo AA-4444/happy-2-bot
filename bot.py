@@ -24,6 +24,7 @@ from db import (
 	inc_start, inc_message,
 	upsert_job, fetch_due_jobs, mark_job_done,
 	get_flow_triggers,
+	
 
 	# flow modes
 	get_flow_modes,
@@ -41,6 +42,7 @@ from db import (
 
 	# for broadcasts (all users)
 	get_users,
+	get_last_user_flow,
 
 	#  нужно для user-state (разблокировка уроков)
 	get_pool,
@@ -919,10 +921,36 @@ async def cmd_start(message: Message):
 	username = message.from_user.username or ""
 
 	await inc_start(uid, username)
-
 	await refresh_flow_modes()
-	await schedule_from_flow_triggers(uid)
-	return
+
+	last_flow = await get_last_user_flow(uid)
+
+	# 🆕 Новый пользователь — просто запускаем welcome
+	if not last_flow:
+		await render_flow(uid, "welcome")
+		return
+
+	# 👤 Старый пользователь — даём выбор
+	keyboard = InlineKeyboardMarkup(inline_keyboard=[
+		[
+			InlineKeyboardButton(
+				text="▶️ Продолжить",
+				callback_data="resume_course"
+			)
+		],
+		[
+			InlineKeyboardButton(
+				text="🔄 Начать заново",
+				callback_data="restart_course"
+			)
+		]
+	])
+
+	await message.answer(
+		"Вы уже начали курс.\n\n"
+		"Хотите продолжить с того места, где остановились?",
+		reply_markup=keyboard
+	)
 
 
 @dp.message(Command("menu"))
@@ -1115,7 +1143,34 @@ async def cb_lesson(call: CallbackQuery):
 
 	flow = call.data.split(":", 1)[1].strip()
 	await render_flow(call.from_user.id, flow)
-
+	
+	
+@dp.callback_query(F.data == "resume_course")
+async def cb_resume(call: CallbackQuery):
+	await call.answer()
+	
+	last_flow = await get_last_user_flow(call.from_user.id)
+	
+	if not last_flow:
+		await render_flow(call.from_user.id, "welcome")
+		return
+	
+	await render_flow(call.from_user.id, last_flow)
+	
+	
+@dp.callback_query(F.data == "restart_course")
+async def cb_restart(call: CallbackQuery):
+	await call.answer()
+	
+	# очищаем старые jobs
+	pool = await get_pool()
+	async with pool.acquire() as conn:
+		await conn.execute(
+			"UPDATE jobs SET is_done=1 WHERE user_id=$1;",
+			int(call.from_user.id)
+		)
+	
+	await render_flow(call.from_user.id, "welcome")
 
 @dp.callback_query(F.data.startswith("gate:"))
 async def cb_gate_next(call: CallbackQuery):

@@ -1315,19 +1315,39 @@ async def swap_positions(id_a: int, id_b: int) -> None:
 			await conn.execute("UPDATE content_blocks SET position=$1 WHERE id=$2;", int(b_pos), int(id_a))
 			await conn.execute("UPDATE content_blocks SET position=$1 WHERE id=$2;", int(a_pos), int(id_b))
 			
+
 # ===================== FLOW ANALYTICS =====================
 			
-# ===================== FLOW ANALYTICS =====================
-
 async def log_user_flow(user_id: int, flow: str):
 	flow = (flow or "").strip()
 	if not flow:
 		return
-
+			
 	pool = await get_pool()
 	async with pool.acquire() as conn:
 		await conn.execute("""
-			INSERT INTO user_flow_events (user_id, flow, entered_ts)
+		    INSERT INTO user_flow_events (user_id, flow, entered_ts)
 			VALUES ($1, $2, EXTRACT(EPOCH FROM NOW())::BIGINT)
-			ON CONFLICT (user_id, flow) DO NOTHING;
+			ON CONFLICT (user_id, flow)
+			DO UPDATE SET entered_ts = EXTRACT(EPOCH FROM NOW())::BIGINT;
 		""", int(user_id), flow)
+			
+		
+# ===================== LAST USER FLOW =====================
+		
+async def get_last_user_flow(user_id: int) -> Optional[str]:
+	pool = await get_pool()
+	async with pool.acquire() as conn:
+		row = await conn.fetchrow("""
+			SELECT flow
+			FROM user_flow_events
+			WHERE user_id=$1
+			ORDER BY entered_ts DESC
+			LIMIT 1;
+		""", int(user_id))
+		
+	if not row:
+		return None
+		
+	flow = (row["flow"] or "").strip()
+	return flow or None
