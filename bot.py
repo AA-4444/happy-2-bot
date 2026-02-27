@@ -17,6 +17,7 @@ from aiogram.types import (
 	FSInputFile,
 	URLInputFile,
 )
+from aiogram import BaseMiddleware
 
 from db import (
 	init_db, get_blocks, get_block,
@@ -66,6 +67,25 @@ _COURSE_COMPLETE_FLOW = (os.getenv("COURSE_COMPLETE_FLOW") or "day10").strip()
 
 bot = Bot(BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
+
+class ActivityMiddleware(BaseMiddleware):
+	async def __call__(self, handler, event, data):
+		try:
+			user = None
+
+			# message
+			if hasattr(event, "from_user") and event.from_user:
+				user = event.from_user
+
+			if user:
+				await inc_message(user.id, user.username or "")
+		except Exception:
+			pass
+
+		return await handler(event, data)
+
+
+dp.update.middleware(ActivityMiddleware())
 
 _jobs_task: asyncio.Task | None = None
 
