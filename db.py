@@ -5,7 +5,7 @@ import calendar
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Optional, Tuple
 from zoneinfo import ZoneInfo
-LOCAL_TZ = ZoneInfo("Europe/Warsaw")
+LOCAL_TZ = ZoneInfo("Asia/Jerusalem")
 import asyncpg
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
